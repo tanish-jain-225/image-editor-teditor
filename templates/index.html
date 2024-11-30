@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Image Editing Website" />
+    <title>TEditor - Edit Your Images Online</title>
+
+    <!-- Favicon -->
+    <link
+      rel="shortcut icon"
+      href="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
+      type="image/x-icon"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+
+    <!-- Custom Styles -->
+    <style>
+      /* Custom styles for footer positioning */
+      .content-wrapper {
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body class="bg-light d-flex flex-column min-vh-100">
+    <!-- Navbar Section -->
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-body-tertiary py-3 shadow-sm"
+    >
+      <div class="container">
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2px;
+            margin: 2px;
+            gap: 4px;
+          "
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
+            alt="logo"
+            width="24px"
+          />
+          <a class="navbar-brand fw-bold" href="/">TEditor</a>
+        </div>
+        <div role="search">
+          <a href="/">
+            <button class="btn btn-outline-success">Refresh</button>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Section -->
+    <div class="container content-wrapper my-5">
+      <!-- Flash Messages -->
+      <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show"
+          role="alert"
+        >
+          <strong>Processed!</strong> {{ message | safe }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endfor %} {% endif %} {% endwith %}
+      </div>
+
+      <!-- Form Container -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="fs-4 text-center mb-4">
+            TEditor - Edit Your Images Online
+          </h1>
+
+          <!-- Image Editing Form -->
+          <form action="/edit" method="post" enctype="multipart/form-data">
+            <!-- File Upload -->
+            <div class="mb-3" style="overflow: hidden">
+              <label for="formFile" class="form-label"
+                >Select An Image To Edit</label
+              >
+              <input
+                class="form-control"
+                type="file"
+                name="file"
+                id="formFile"
+                required
+              />
+            </div>
+
+            <!-- Operation Selection Dropdown -->
+            <div class="form-floating mb-3" style="overflow: hidden">
+              <select
+                name="operation"
+                class="form-select"
+                id="floatingSelect"
+                required
+                style="cursor: pointer"
+              >
+                <option value="" disabled selected>Choose An Operation</option>
+                <option value="cpng">Convert to PNG</option>
+                <option value="cjpg">Convert to JPG</option>
+                <option value="cgray">Convert to GRAYSCALE</option>
+                <option value="cwebp">Convert to WEBP</option>
+                <option value="resize">Resize</option>
+                <option value="rotate">Rotate</option>
+                <option value="brightness_contrast">
+                  Brightness & Contrast
+                </option>
+                <option value="watermark">Add Watermark</option>
+                <option value="crop">Crop</option>
+                <option value="flip">Flip</option>
+                <option value="blur">Apply Blur</option>
+                <option value="sharpen">Sharpen Image</option>
+                <option value="invert">Invert Colors</option>
+                <option value="threshold">Apply Threshold</option>
+              </select>
+              <label for="floatingSelect">Select An Editing Operation</label>
+            </div>
+
+            <!-- Additional Options Based on Selected Operation -->
+            <!-- Resize Options -->
+            <div id="resize-options" class="additional-options d-none">
+              <div class="mb-3">
+                <label for="width" class="form-label">Width</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="width"
+                  name="width"
+                  placeholder="Enter width"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="height" class="form-label">Height</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="height"
+                  name="height"
+                  placeholder="Enter height"
+                />
+              </div>
+            </div>
+
+            <!-- Rotate Options -->
+            <div id="rotate-options" class="additional-options d-none">
+              <div class="mb-3">
+                <label for="angle" class="form-label">Angle</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="angle"
+                  name="angle"
+                  placeholder="Enter angle"
+                />
+              </div>
+            </div>
+
+            <!-- Brightness & Contrast Options -->
+            <div
+              id="brightness-contrast-options"
+              class="additional-options d-none"
+            >
+              <div class="mb-3">
+                <label for="brightness" class="form-label">Brightness</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="brightness"
+                  name="brightness"
+                  placeholder="Enter brightness"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="contrast" class="form-label">Contrast</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  class="form-control"
+                  id="contrast"
+                  name="contrast"
+                  placeholder="Enter contrast"
+                />
+              </div>
+            </div>
+
+            <!-- Watermark Options -->
+            <div id="watermark-options" class="additional-options d-none">
+              <div class="mb-3">
+                <label for="watermark_text" class="form-label"
+                  >Watermark Text</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="watermark_text"
+                  name="watermark_text"
+                  placeholder="Enter watermark text"
+                />
+              </div>
+            </div>
+
+            <!-- Crop Options -->
+            <div id="crop-options" class="additional-options d-none">
+              <div class="mb-3">
+                <label for="x" class="form-label">X (Start)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="x"
+                  name="x"
+                  placeholder="Enter X position"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="y" class="form-label">Y (Start)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="y"
+                  name="y"
+                  placeholder="Enter Y position"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="crop_width" class="form-label">Width</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="crop_width"
+                  name="crop_width"
+                  placeholder="Enter width"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="crop_height" class="form-label">Height</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="crop_height"
+                  name="crop_height"
+                  placeholder="Enter height"
+                />
+              </div>
+            </div>
+
+            <!-- Flip Options -->
+            <div id="flip-options" class="additional-options d-none">
+              <div class="mb-3">
+                <label for="flip_type" class="form-label">Flip Type</label>
+                <select class="form-select" id="flip_type" name="flip_type">
+                  <option value="0">Vertical</option>
+                  <option value="1">Horizontal</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Blur and Sharpen Options -->
+            <div id="blur-sharpen-options" class="additional-options d-none">
+              <p class="form-label">Apply Gaussian Blur or Sharpen</p>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-success w-100 py-2">
+              Submit
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="text-center py-3 bg-body-tertiary mt-auto">
+      <p class="mb-0 text-muted">© 2024 TEditor - Edit Your Images Online</p>
+    </footer>
+
+    <!-- Bootstrap JS and Dependencies -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyvqHk98pZgKJlOBNTm51tW7C/Bh3BqSwhMyjBB"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Custom JavaScript for Dynamic Form -->
+    <script>
+      const operationSelect = document.getElementById("floatingSelect");
+      const resizeOptions = document.getElementById("resize-options");
+      const rotateOptions = document.getElementById("rotate-options");
+      const brightnessContrastOptions = document.getElementById(
+        "brightness-contrast-options"
+      );
+      const watermarkOptions = document.getElementById("watermark-options");
+      const cropOptions = document.getElementById("crop-options");
+      const flipOptions = document.getElementById("flip-options");
+      const blurSharpenOptions = document.getElementById(
+        "blur-sharpen-options"
+      );
+
+      // Function to hide all additional options
+      const hideAllOptions = () => {
+        resizeOptions.classList.add("d-none");
+        rotateOptions.classList.add("d-none");
+        brightnessContrastOptions.classList.add("d-none");
+        watermarkOptions.classList.add("d-none");
+        cropOptions.classList.add("d-none");
+        flipOptions.classList.add("d-none");
+        blurSharpenOptions.classList.add("d-none");
+      };
+
+      // Event listener for operation select change
+      operationSelect.addEventListener("change", (event) => {
+        hideAllOptions();
+        const selectedOperation = event.target.value;
+
+        // Show corresponding options based on selected operation
+        switch (selectedOperation) {
+          case "resize":
+            resizeOptions.classList.remove("d-none");
+            break;
+          case "rotate":
+            rotateOptions.classList.remove("d-none");
+            break;
+          case "brightness_contrast":
+            brightnessContrastOptions.classList.remove("d-none");
+            break;
+          case "watermark":
+            watermarkOptions.classList.remove("d-none");
+            break;
+          case "crop":
+            cropOptions.classList.remove("d-none");
+            break;
+          case "flip":
+            flipOptions.classList.remove("d-none");
+            break;
+          case "blur":
+          case "sharpen":
+            blurSharpenOptions.classList.remove("d-none");
+            break;
+        }
+      });
+    </script>
+
+    <script>
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          window.location.href = "/"; // Redirect to the home page when the tab becomes active
+        }
+      });
+    </script>
+  </body>
+</html>
