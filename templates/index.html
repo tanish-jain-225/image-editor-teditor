@@ -125,7 +125,6 @@
                 <option value="brightness_contrast">
                   Brightness & Contrast
                 </option>
-                <option value="watermark">Add Watermark</option>
                 <option value="crop">Crop</option>
                 <option value="flip">Flip</option>
                 <option value="blur">Apply Blur</option>
@@ -199,22 +198,6 @@
                   id="contrast"
                   name="contrast"
                   placeholder="Enter contrast"
-                />
-              </div>
-            </div>
-
-            <!-- Watermark Options -->
-            <div id="watermark-options" class="additional-options d-none">
-              <div class="mb-3">
-                <label for="watermark_text" class="form-label"
-                  >Watermark Text</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="watermark_text"
-                  name="watermark_text"
-                  placeholder="Enter watermark text"
                 />
               </div>
             </div>
@@ -308,7 +291,6 @@
       const brightnessContrastOptions = document.getElementById(
         "brightness-contrast-options"
       );
-      const watermarkOptions = document.getElementById("watermark-options");
       const cropOptions = document.getElementById("crop-options");
       const flipOptions = document.getElementById("flip-options");
       const blurSharpenOptions = document.getElementById(
@@ -320,7 +302,6 @@
         resizeOptions.classList.add("d-none");
         rotateOptions.classList.add("d-none");
         brightnessContrastOptions.classList.add("d-none");
-        watermarkOptions.classList.add("d-none");
         cropOptions.classList.add("d-none");
         flipOptions.classList.add("d-none");
         blurSharpenOptions.classList.add("d-none");
@@ -341,9 +322,6 @@
             break;
           case "brightness_contrast":
             brightnessContrastOptions.classList.remove("d-none");
-            break;
-          case "watermark":
-            watermarkOptions.classList.remove("d-none");
             break;
           case "crop":
             cropOptions.classList.remove("d-none");

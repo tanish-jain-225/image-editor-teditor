@@ -75,19 +75,6 @@ def edit_image():
         img_io.seek(0)
         return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
 
-    elif operation == 'watermark':  # Add Watermark
-        watermark_text = request.form.get('watermark_text')
-        from PIL import ImageDraw, ImageFont
-        draw = ImageDraw.Draw(image)
-        font = ImageFont.load_default()
-        text_width, text_height = draw.textsize(watermark_text, font)
-        position = (image.width - text_width - 10, image.height - text_height - 10)
-        draw.text(position, watermark_text, font=font)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
     elif operation == 'crop':  # Crop
         x = int(request.form.get('x'))
         y = int(request.form.get('y'))
