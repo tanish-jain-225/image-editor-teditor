@@ -8,9 +8,11 @@ app = Flask(__name__)
 # Set a secret key for sessions/flash messages any character is okay no strict things as of now
 app.secret_key = os.urandom(24)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/edit', methods=['POST'])
 def edit_image():
@@ -131,6 +133,7 @@ def edit_image():
 
     flash("Operation successful!", "success")
     return redirect('/')
+
 
 if __name__ == "__main__":
     app.run(debug=False)
