@@ -122,14 +122,6 @@ def edit_image():
         img_io.seek(0)
         return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
 
-    elif operation == 'threshold':  # Apply Threshold
-        threshold = int(request.form.get('threshold'))
-        image = image.convert('L')
-        image = image.point(lambda p: p > threshold and 255)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
 
     flash("Operation successful!", "success")
     return redirect('/')
