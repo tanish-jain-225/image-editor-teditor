@@ -7,12 +7,13 @@
 
     <title>Teditor - Edit Your Images Online</title>
 
-    <!-- Favicon -->
-    <link
-      rel="shortcut icon"
-      href="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
-      type="image/x-icon"
-    />
+    <!-- Custom Styles -->
+    <style>
+      /* Custom styles for footer positioning */
+      .content-wrapper {
+        flex: 1;
+      }
+    </style>
 
     <!-- Bootstrap CSS -->
     <link
@@ -21,14 +22,13 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-
-    <!-- Custom Styles -->
-    <style>
-      /* Custom styles for footer positioning */
-      .content-wrapper {
-        flex: 1;
-      }
-    </style>
+    
+    <!-- Favicon -->
+    <link
+      rel="shortcut icon"
+      href="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
+      type="image/x-icon"
+    />
   </head>
 
   <body class="bg-light d-flex flex-column min-vh-100">
@@ -56,7 +56,7 @@
         </div>
         <div role="search">
           <a href="/">
-            <button class="btn btn-outline-success">Refresh</button>
+            <button class="btn btn-outline-success">Reset</button>
           </a>
         </div>
       </div>
@@ -64,24 +64,6 @@
 
     <!-- Main Content Section -->
     <div class="container content-wrapper my-5">
-      <!-- Flash Messages -->
-      <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %} {% if
-        messages %} {% for category, message in messages %}
-        <div
-          class="alert alert-{{ category }} alert-dismissible fade show"
-          role="alert"
-        >
-          <strong>Processed!</strong> {{ message | safe }}
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-          ></button>
-        </div>
-        {% endfor %} {% endif %} {% endwith %}
-      </div>
 
       <!-- Form Container -->
       <div class="card shadow-sm">
@@ -119,7 +101,6 @@
                 <option value="cpng">Convert to PNG</option>
                 <option value="cjpg">Convert to JPG</option>
                 <option value="cgray">Convert to GRAYSCALE</option>
-                <option value="cwebp">Convert to WEBP</option>
                 <option value="resize">Resize</option>
                 <option value="rotate">Rotate</option>
                 <option value="brightness_contrast">
@@ -138,7 +119,7 @@
             <!-- Resize Options -->
             <div id="resize-options" class="additional-options d-none">
               <div class="mb-3">
-                <label for="width" class="form-label">Width</label>
+                <label for="width" class="form-label">Width (in px)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -148,7 +129,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="height" class="form-label">Height</label>
+                <label for="height" class="form-label">Height (in px)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -162,7 +143,7 @@
             <!-- Rotate Options -->
             <div id="rotate-options" class="additional-options d-none">
               <div class="mb-3">
-                <label for="angle" class="form-label">Angle</label>
+                <label for="angle" class="form-label">Angle ('+ve' for counter-clockwise and '-ve' for clockwise)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -179,7 +160,7 @@
               class="additional-options d-none"
             >
               <div class="mb-3">
-                <label for="brightness" class="form-label">Brightness</label>
+                <label for="brightness" class="form-label">Brightness (0 to 0.9 for 'Dark' and 1 for 'Original' and 1.1 to 2 for 'Bright')</label>
                 <input
                   type="number"
                   class="form-control"
@@ -189,7 +170,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="contrast" class="form-label">Contrast</label>
+                <label for="contrast" class="form-label">Contrast (0 to 0.9 for 'Low' and 1 for 'Original' and 1.1 to 2 for 'High')</label>
                 <input
                   type="number"
                   step="0.1"
@@ -204,7 +185,7 @@
             <!-- Crop Options -->
             <div id="crop-options" class="additional-options d-none">
               <div class="mb-3">
-                <label for="x" class="form-label">X (Start)</label>
+                <label for="x" class="form-label">X (Start point coordinate)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -214,7 +195,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="y" class="form-label">Y (Start)</label>
+                <label for="y" class="form-label">Y (Start point coordinate)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -224,7 +205,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="crop_width" class="form-label">Width</label>
+                <label for="crop_width" class="form-label">Width (in px)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -234,7 +215,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="crop_height" class="form-label">Height</label>
+                <label for="crop_height" class="form-label">Height (in px)</label>
                 <input
                   type="number"
                   class="form-control"
@@ -263,7 +244,7 @@
 
             <!-- Submit Button -->
             <button type="submit" class="btn btn-success w-100 py-2">
-              Submit
+              Download
             </button>
           </form>
         </div>
@@ -272,7 +253,7 @@
 
     <!-- Footer Section -->
     <footer class="text-center py-3 bg-body-tertiary mt-auto">
-      <p class="mb-0 text-muted">© 2024 Teditor - Edit Your Images Online</p>
+      <p class="mb-0 text-muted">&copy; 2024 Teditor - Edit Your Images Online</p>
     </footer>
 
     <!-- Bootstrap JS and Dependencies -->

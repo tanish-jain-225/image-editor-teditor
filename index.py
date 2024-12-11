@@ -1,11 +1,10 @@
-from flask import Flask, render_template, request, redirect, flash, send_file
+from flask import Flask, render_template, request, redirect, send_file
 import os
 from PIL import Image
 import io
 
 app = Flask(__name__)
 
-# Set a secret key for sessions/flash messages any character is okay no strict things as of now
 app.secret_key = os.urandom(24)
 
 
@@ -19,10 +18,6 @@ def edit_image():
     # Get the uploaded file and operation choice
     uploaded_file = request.files.get('file')
     operation = request.form.get('operation')
-
-    if not uploaded_file:
-        flash("No file uploaded.", "danger")
-        return redirect('/')
 
     # Open the uploaded image
     image = Image.open(uploaded_file.stream)
@@ -122,8 +117,6 @@ def edit_image():
         img_io.seek(0)
         return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
 
-
-    flash("Operation successful!", "success")
     return redirect('/')
 
 
