@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, redirect, send_file
+from flask import Flask, render_template, request, send_file
 import os
-from PIL import Image
 import io
+from PIL import Image, ImageEnhance, ImageFilter
 
 app = Flask(__name__)
-
 app.secret_key = os.urandom(24)
 
+# Allowed formats and default
+ALLOWED_FORMATS = ['PNG', 'JPEG', 'JPG']
+DEFAULT_FORMAT = 'PNG'  # Fallback format if none provided
 
 @app.route('/')
 def index():
@@ -15,110 +17,106 @@ def index():
 
 @app.route('/edit', methods=['POST'])
 def edit_image():
-    # Get the uploaded file and operation choice
     uploaded_file = request.files.get('file')
+    if not uploaded_file or uploaded_file.filename == '':
+        return "No file uploaded", 400
+
     operation = request.form.get('operation')
 
-    # Open the uploaded image
-    image = Image.open(uploaded_file.stream)
+    try:
+        image = Image.open(uploaded_file.stream)
+    except Exception:
+        return "Invalid image file", 400
 
-    # Perform the selected operation
-    if operation == 'cpng':  # Convert to PNG
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
+    # Handle file format (normalize 'JPG' to 'JPEG')
+    file_format = request.form.get('file_format', DEFAULT_FORMAT).upper()
+    file_format = 'JPEG' if file_format == 'JPG' else file_format
+
+    if file_format not in ALLOWED_FORMATS:
+        return f"Unsupported file format: {file_format}", 400
+
+    img_io = io.BytesIO()
+
+    try:
+        # Core processing logic (operations)
+        if operation == 'cpng':
+            file_format = 'PNG'
+
+        elif operation == 'cjpg':
+            file_format = 'JPEG'
+
+        elif operation == 'cgray':
+            image = image.convert('L')
+
+        elif operation == 'resize':
+            width = int(request.form.get('width', 0))
+            height = int(request.form.get('height', 0))
+            if width <= 0 or height <= 0:
+                return "Invalid width or height", 400
+            image = image.resize((width, height))
+
+        elif operation == 'rotate':
+            angle = int(request.form.get('angle', 0))
+            image = image.rotate(angle, expand=True)
+
+        elif operation == 'brightness_contrast':
+            brightness = float(request.form.get('brightness', 1.0))
+            contrast = float(request.form.get('contrast', 1.0))
+            image = ImageEnhance.Brightness(image).enhance(brightness)
+            image = ImageEnhance.Contrast(image).enhance(contrast)
+
+        elif operation == 'crop':
+            x = int(request.form.get('x', 0))
+            y = int(request.form.get('y', 0))
+            crop_width = int(request.form.get('crop_width', 0))
+            crop_height = int(request.form.get('crop_height', 0))
+
+            if x < 0 or y < 0 or crop_width <= 0 or crop_height <= 0:
+                return "Invalid crop dimensions", 400
+            if x + crop_width > image.width or y + crop_height > image.height:
+                return "Crop dimensions exceed image size", 400
+
+            image = image.crop((x, y, x + crop_width, y + crop_height))
+
+        elif operation == 'flip':
+            flip_type = request.form.get('flip_type')
+            if flip_type == 'vertical':
+                image = image.transpose(Image.FLIP_TOP_BOTTOM)
+            elif flip_type == 'horizontal':
+                image = image.transpose(Image.FLIP_LEFT_RIGHT)
+            else:
+                return "Invalid flip type", 400
+
+        elif operation == 'blur':
+            radius = float(request.form.get('blur_radius', 5))
+            image = image.filter(ImageFilter.GaussianBlur(radius=radius))
+
+        elif operation == 'sharpen':
+            image = image.filter(ImageFilter.SHARPEN)
+
+        elif operation == 'invert':
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            image = Image.eval(image, lambda x: 255 - x)
+
+        else:
+            return "Invalid operation", 400
+
+        # Save processed image to BytesIO buffer
+        image.save(img_io, file_format)
         img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
 
-    elif operation == 'cjpg':  # Convert to JPG
-        img_io = io.BytesIO()
-        image.save(img_io, 'JPEG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/jpeg', as_attachment=True, download_name='edited_image.jpg')
+        # Return the processed file as attachment
+        return send_file(
+            img_io,
+            mimetype=f'image/{file_format.lower()}',
+            as_attachment=True,
+            download_name=f'edited_image.{file_format.lower()}'
+        )
 
-    elif operation == 'cgray':  # Convert to Grayscale
-        image = image.convert('L')
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'resize':  # Resize
-        width = int(request.form.get('width'))
-        height = int(request.form.get('height'))
-        image = image.resize((width, height))
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'rotate':  # Rotate
-        angle = int(request.form.get('angle'))
-        image = image.rotate(angle)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'brightness_contrast':  # Brightness & Contrast
-        brightness = float(request.form.get('brightness'))
-        contrast = float(request.form.get('contrast'))
-        from PIL import ImageEnhance
-        enhancer = ImageEnhance.Brightness(image)
-        image = enhancer.enhance(brightness)
-        enhancer = ImageEnhance.Contrast(image)
-        image = enhancer.enhance(contrast)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'crop':  # Crop
-        x = int(request.form.get('x'))
-        y = int(request.form.get('y'))
-        crop_width = int(request.form.get('crop_width'))
-        crop_height = int(request.form.get('crop_height'))
-        image = image.crop((x, y, x + crop_width, y + crop_height))
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'flip':  # Flip
-        flip_type = int(request.form.get('flip_type'))
-        if flip_type == 0:  # Vertical
-            image = image.transpose(Image.FLIP_TOP_BOTTOM)
-        elif flip_type == 1:  # Horizontal
-            image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'blur':  # Apply Blur
-        from PIL import ImageFilter
-        image = image.filter(ImageFilter.GaussianBlur(radius=5))
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'sharpen':  # Sharpen Image
-        from PIL import ImageFilter
-        image = image.filter(ImageFilter.SHARPEN)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    elif operation == 'invert':  # Invert Colors
-        image = Image.eval(image, lambda x: 255 - x)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='edited_image.png')
-
-    return redirect('/')
+    except Exception as e:
+        return f"Image processing failed: {str(e)}", 500
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
