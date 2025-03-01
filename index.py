@@ -6,6 +6,9 @@ from PIL import Image, ImageEnhance, ImageFilter
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+# line to limit uploads size
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+
 # Allowed formats and default
 ALLOWED_FORMATS = ['PNG', 'JPEG', 'JPG']
 DEFAULT_FORMAT = 'PNG'  # Fallback format if none provided
