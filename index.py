@@ -3,6 +3,7 @@ import io
 
 from flask import Flask, render_template, request, send_file, jsonify, send_from_directory
 from PIL import Image, ImageEnhance, ImageFilter
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -18,6 +19,9 @@ DEFAULT_FORMAT = 'PNG'  # Fallback format if none provided
 MAX_WIDTH = 4000
 MAX_HEIGHT = 4000
 
+# Allowed file extensions for security
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 # Serve robots.txt for ads and search engine crawlers
 @app.route('/robots.txt')
 def serve_robots_txt():
@@ -28,31 +32,40 @@ def serve_robots_txt():
 def serve_ads_txt():
     return send_from_directory(os.path.join(app.root_path), 'ads.txt')
 
+# Helper function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.errorhandler(400)
 def bad_request(e):
     return jsonify({"error": "Bad Request", "details": str(e)}), 400
 
-
 @app.errorhandler(500)
 def internal_error(e):
     return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
-
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
 @app.route('/edit', methods=['POST'])
 def edit_image():
     uploaded_file = request.files.get('file')
+
+    # Check if the file exists and is of allowed type
     if not uploaded_file or uploaded_file.filename == '':
         return jsonify({"error": "No file uploaded"}), 400
+
+    if not allowed_file(uploaded_file.filename):
+        return jsonify({"error": "Invalid file type. Only PNG, JPG, JPEG are allowed."}), 400
+
+    # Sanitize the filename to prevent issues
+    filename = secure_filename(uploaded_file.filename)
 
     operation = request.form.get('operation')
 
     try:
+        # Open the image and validate its size
         image = Image.open(uploaded_file.stream)
 
         # Cap the image dimensions (protection against excessive memory usage)
