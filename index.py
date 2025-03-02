@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, send_file, jsonify
 import os
 import io
+
+from flask import Flask, render_template, request, send_file, jsonify, send_from_directory
 from PIL import Image, ImageEnhance, ImageFilter
 
 app = Flask(__name__)
@@ -16,6 +17,16 @@ DEFAULT_FORMAT = 'PNG'  # Fallback format if none provided
 # Maximum allowed image dimensions (to avoid memory issues)
 MAX_WIDTH = 4000
 MAX_HEIGHT = 4000
+
+# Serve robots.txt for ads and search engine crawlers
+@app.route('/robots.txt')
+def serve_robots_txt():
+    return send_from_directory(os.path.join(app.root_path), 'robots.txt')
+
+# Serve ads.txt for verification of ad sellers
+@app.route('/ads.txt')
+def serve_ads_txt():
+    return send_from_directory(os.path.join(app.root_path), 'ads.txt')
 
 
 @app.errorhandler(400)
