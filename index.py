@@ -22,31 +22,55 @@ MAX_HEIGHT = 4000
 # Allowed file extensions for security
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+
+@app.route('/images/<filename>')  # Serve static file - Images
+def serve_file(filename):
+    return send_from_directory('static/images', filename)
+
+
+# @app.route('/css/<filename>')  # Serve static file - CSS
+# def serve_css(filename):
+#     return send_from_directory('static/css', filename)
+
+
+# @app.route('/js/<filename>')  # Serve static file - JS
+# def serve_js(filename):
+#     return send_from_directory('static/js', filename)
+
+
 # Serve robots.txt for ads and search engine crawlers
 @app.route('/robots.txt')
 def serve_robots_txt():
     return send_from_directory(os.path.join(app.root_path), 'robots.txt')
 
 # Serve ads.txt for verification of ad sellers
+
+
 @app.route('/ads.txt')
 def serve_ads_txt():
     return send_from_directory(os.path.join(app.root_path), 'ads.txt')
 
 # Helper function to check allowed file extensions
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.errorhandler(400)
 def bad_request(e):
     return jsonify({"error": "Bad Request", "details": str(e)}), 400
 
+
 @app.errorhandler(500)
 def internal_error(e):
     return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/edit', methods=['POST'])
 def edit_image():
