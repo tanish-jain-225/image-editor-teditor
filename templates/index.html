@@ -1,71 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Teditor - Free Online Image Editor | Edit, Resize, Crop & More
-    </title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teditor - Free Online Image Editor | Edit, Resize, Crop & More</title>
 
     <!-- SEO Meta Tags -->
-    <meta
-      name="title"
-      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
-    />
-    <meta
-      name="description"
-      content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur."
-    />
-    <meta
-      name="keywords"
-      content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter"
-    />
-    <meta name="author" content="Teditor Team" />
-    <link rel="canonical" href="https://www.teditor.com/" />
+    <meta name="title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More">
+    <meta name="description" content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur.">
+    <meta name="keywords" content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter">
+    <meta name="author" content="Teditor Team">
+    <link rel="canonical" href="https://www.teditor.com/">
 
-    <!-- Open Graph Tags (For Social Sharing) -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.teditor.com/" />
-    <meta
-      property="og:title"
-      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
-    />
-    <meta
-      property="og:description"
-      content="Edit images online for free with Teditor. Crop, resize, convert to PNG or JPG, apply filters, and more. Simple, fast, and free!"
-    />
-    <meta
-      property="og:image"
-      content="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
-    />
-    <meta property="og:site_name" content="Teditor" />
-    <meta property="og:locale" content="en_US" />
+    <!-- Open Graph Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.teditor.com/">
+    <meta property="og:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More">
+    <meta property="og:description" content="Edit images online for free with Teditor. Crop, resize, convert to PNG or JPG, apply filters, and more. Simple, fast, and free!">
+    <meta property="og:image" content="https://www.teditor.com/assets/social-preview.png">
+    <meta property="og:site_name" content="Teditor">
+    <meta property="og:locale" content="en_US">
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://www.teditor.com/" />
-    <meta
-      name="twitter:title"
-      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
-    />
-    <meta
-      name="twitter:description"
-      content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily."
-    />
-    <meta
-      name="twitter:image"
-      content="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
-    />
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://www.teditor.com/">
+    <meta name="twitter:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More">
+    <meta name="twitter:description" content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily.">
+    <meta name="twitter:image" content="https://www.teditor.com/assets/social-preview.png">
 
     <!-- Favicon -->
-    <link
-      rel="icon"
-      href="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
-    />
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/8164/8164213.png">
+    <link rel="apple-touch-icon" href="https://www.teditor.com/assets/apple-icon.png">
 
     <!-- Structured Data (Schema.org) -->
     <script type="application/ld+json">
-      {
+    {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Teditor",
@@ -73,209 +42,109 @@
         "applicationCategory": "WebApplication",
         "description": "Teditor is a free online image editor for resizing, cropping, adding filters, converting image formats, and enhancing images.",
         "url": "https://www.teditor.com/",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
-        "image": "https://cdn-icons-png.flaticon.com/128/8164/8164213.png",
-        "author": {
-          "@type": "Organization",
-          "name": "Teditor Team"
-        }
-      }
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "image": "https://www.teditor.com/assets/social-preview.png",
+        "author": { "@type": "Organization", "name": "Teditor Team" }
+    }
     </script>
 
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <!-- Preload Critical CSS -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" as="style">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-      .additional-options {
-        display: none;
-      }
-      .show-options {
-        display: block;
-      }
+        .additional-options { display: none; }
+        .show-options { display: block; }
     </style>
-  </head>
-  <body class="bg-light d-flex flex-column min-vh-100">
-    <!-- Navbar -->
-    <nav class="navbar navbar-light bg-white shadow-sm">
-      <div class="container">
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+<!-- Navbar -->
+<nav class="navbar navbar-light bg-white shadow-sm">
+    <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-          <img
-            src="https://cdn-icons-png.flaticon.com/128/8164/8164213.png"
-            width="32"
-            class="me-2"
-            alt="Teditor Logo"
-          />
-          Teditor
+            <img src="https://cdn-icons-png.flaticon.com/128/8164/8164213.png" 
+                 width="32" class="me-2" 
+                 alt="Teditor Logo - Free Online Image Editor" 
+                 loading="lazy">
+            Teditor
         </a>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container flex-grow-1 py-4">
-      <div class="card shadow">
-        <div class="card-body">
-          <h1 class="fs-4 text-center mb-4">
-            Teditor - Edit Your Images Online
-          </h1>
-
-          <form
-            id="editor-form"
-            action="/edit"
-            method="post"
-            enctype="multipart/form-data"
-          >
-            <div class="mb-3">
-              <label for="file" class="form-label"
-                >Select an Image to Edit</label
-              >
-              <input
-                type="file"
-                class="form-control"
-                id="file"
-                name="file"
-                required
-              />
-            </div>
-
-            <div class="mb-3">
-              <label for="operation" class="form-label"
-                >Choose an Operation</label
-              >
-              <select
-                class="form-select"
-                id="operation"
-                name="operation"
-                required
-              >
-                <option value="" disabled selected>Select Operation</option>
-                <option value="cpng">Convert to PNG</option>
-                <option value="cjpg">Convert to JPG</option>
-                <option value="cgray">Convert to Grayscale</option>
-                <option value="resize">Resize</option>
-                <option value="rotate">Rotate</option>
-                <option value="brightness_contrast">
-                  Brightness & Contrast
-                </option>
-                <option value="crop">Crop</option>
-                <option value="flip">Flip</option>
-                <option value="blur">Blur</option>
-                <option value="sharpen">Sharpen</option>
-                <option value="invert">Invert Colors</option>
-              </select>
-            </div>
-
-            <!-- Dynamic Option Fields -->
-            <div id="resize-options" class="additional-options">
-              <label>Width (px)</label
-              ><input type="number" class="form-control" name="width" />
-              <label>Height (px)</label
-              ><input type="number" class="form-control" name="height" />
-            </div>
-
-            <div id="rotate-options" class="additional-options">
-              <label>Angle (degrees)</label
-              ><input type="number" class="form-control" name="angle" />
-            </div>
-
-            <div id="brightness_contrast-options" class="additional-options">
-              <label>Brightness (0.5-2)</label
-              ><input
-                type="number"
-                step="0.1"
-                class="form-control"
-                name="brightness"
-              />
-              <label>Contrast (0.5-2)</label
-              ><input
-                type="number"
-                step="0.1"
-                class="form-control"
-                name="contrast"
-              />
-            </div>
-
-            <div id="crop-options" class="additional-options">
-              <label>X (Start)</label
-              ><input type="number" class="form-control" name="x" />
-              <label>Y (Start)</label
-              ><input type="number" class="form-control" name="y" />
-              <label>Width</label
-              ><input type="number" class="form-control" name="crop_width" />
-              <label>Height</label
-              ><input type="number" class="form-control" name="crop_height" />
-            </div>
-
-            <div id="flip-options" class="additional-options">
-              <label>Flip Type</label>
-              <select class="form-select" name="flip_type">
-                <option value="vertical">Vertical</option>
-                <option value="horizontal">Horizontal</option>
-              </select>
-            </div>
-
-            <div id="blur-options" class="additional-options">
-              <label>Blur Radius (1-10)</label
-              ><input
-                type="number"
-                step="0.1"
-                class="form-control"
-                name="blur_radius"
-              />
-            </div>
-
-            <button type="submit" class="btn btn-success w-100 mt-4">
-              Download Image
-            </button>
-          </form>
-        </div>
-      </div>
     </div>
+</nav>
 
-    <!-- Footer -->
-    <footer class="text-center py-2 mt-auto bg-light">
-      <p class="text-muted mb-0">
-        &copy; 2024 Teditor - Edit Your Images Online
-      </p>
-    </footer>
+<!-- Main Content -->
+<div class="container flex-grow-1 py-4">
+    <div class="card shadow">
+        <div class="card-body">
+            <h1 class="fs-4 text-center mb-4">Teditor - Edit Your Images Online</h1>
+            <p class="text-muted text-center">
+                Edit images online — fast, free & hassle-free!
+            </p>
 
-    <!-- JavaScript -->
-    <script>
-      const operationSelect = document.getElementById("operation");
+            <form id="editor-form" action="/edit" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="file" class="form-label">Select an Image to Edit</label>
+                    <input type="file" class="form-control" id="file" name="file" required>
+                </div>
 
-      document
-        .getElementById("editor-form")
-        .addEventListener("submit", (event) => {
-          if (
-            document.getElementById("file").files[0].size >
-            10 * 1024 * 1024
-          ) {
-            event.preventDefault();
-            alert("File size exceeds 10MB limit.");
-          }
-        });
+                <div class="mb-3">
+                    <label for="operation" class="form-label">Choose an Operation</label>
+                    <select class="form-select" id="operation" name="operation" required>
+                        <option value="" disabled selected>Select Operation</option>
+                        <option value="cpng">Convert to PNG</option>
+                        <option value="cjpg">Convert to JPG</option>
+                        <option value="cgray">Convert to Grayscale</option>
+                        <option value="resize">Resize</option>
+                        <option value="rotate">Rotate</option>
+                        <option value="brightness_contrast">Brightness & Contrast</option>
+                        <option value="crop">Crop</option>
+                        <option value="flip">Flip</option>
+                        <option value="blur">Blur</option>
+                        <option value="sharpen">Sharpen</option>
+                        <option value="invert">Invert Colors</option>
+                    </select>
+                </div>
 
-      operationSelect.addEventListener("change", () => {
-        document
-          .querySelectorAll(".additional-options")
-          .forEach((opt) => opt.classList.remove("show-options"));
-        const selected = document.getElementById(
-          `${operationSelect.value}-options`
-        );
-        if (selected) selected.classList.add("show-options");
-      });
+                <!-- Dynamic Options (Placeholder for all additional options if needed) -->
+                <div id="resize-options" class="additional-options">
+                    <label>Width (px)</label><input type="number" class="form-control" name="width">
+                    <label>Height (px)</label><input type="number" class="form-control" name="height">
+                </div>
 
-      document.getElementById("editor-form").onsubmit = () => {
-        setTimeout(() => {
-          window.location.href = "/"; // Change to your actual page
-        }, 4000); // 4 seconds
-      };
-    </script>
-  </body>
+                <button type="submit" class="btn btn-success w-100 mt-4">Download Image</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="text-center py-2 mt-auto bg-light">
+    <p class="text-muted mb-1">&copy; 2024 Teditor - Edit Your Images Online</p>
+</footer>
+
+<!-- JavaScript (Deferred) -->
+<script defer>
+const operationSelect = document.getElementById("operation");
+const form = document.getElementById("editor-form");
+const RESET_TIMER = 5000;
+
+form.addEventListener("submit", (event) => {
+    const file = document.getElementById("file").files[0];
+    if (file && file.size > 10 * 1024 * 1024) {
+        event.preventDefault();
+        alert("File size exceeds 10MB limit.");
+        window.location.href = "/";
+    } else {
+        setTimeout(() => window.location.href = "/", RESET_TIMER);
+    }
+});
+
+operationSelect.addEventListener("change", () => {
+    document.querySelectorAll(".additional-options").forEach(opt => opt.classList.remove("show-options"));
+    const selectedOptions = document.getElementById(`${operationSelect.value}-options`);
+    if (selectedOptions) selectedOptions.classList.add("show-options");
+});
+</script>
+
+</body>
 </html>

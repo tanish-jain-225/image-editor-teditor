@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import os
 import io
 from PIL import Image, ImageEnhance, ImageFilter
@@ -6,12 +6,27 @@ from PIL import Image, ImageEnhance, ImageFilter
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# line to limit uploads size
+# Limit uploads size to 10MB
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 
 # Allowed formats and default
 ALLOWED_FORMATS = ['PNG', 'JPEG', 'JPG']
 DEFAULT_FORMAT = 'PNG'  # Fallback format if none provided
+
+# Maximum allowed image dimensions (to avoid memory issues)
+MAX_WIDTH = 4000
+MAX_HEIGHT = 4000
+
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"error": "Bad Request", "details": str(e)}), 400
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
 
 @app.route('/')
 def index():
@@ -22,21 +37,26 @@ def index():
 def edit_image():
     uploaded_file = request.files.get('file')
     if not uploaded_file or uploaded_file.filename == '':
-        return "No file uploaded", 400
+        return jsonify({"error": "No file uploaded"}), 400
 
     operation = request.form.get('operation')
 
     try:
         image = Image.open(uploaded_file.stream)
+
+        # Cap the image dimensions (protection against excessive memory usage)
+        if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
+            return jsonify({"error": f"Image dimensions exceed {MAX_WIDTH}x{MAX_HEIGHT}"}), 400
+
     except Exception:
-        return "Invalid image file", 400
+        return jsonify({"error": "Invalid image file"}), 400
 
     # Handle file format (normalize 'JPG' to 'JPEG')
     file_format = request.form.get('file_format', DEFAULT_FORMAT).upper()
     file_format = 'JPEG' if file_format == 'JPG' else file_format
 
     if file_format not in ALLOWED_FORMATS:
-        return f"Unsupported file format: {file_format}", 400
+        return jsonify({"error": f"Unsupported file format: {file_format}"}), 400
 
     img_io = io.BytesIO()
 
@@ -55,7 +75,7 @@ def edit_image():
             width = int(request.form.get('width', 0))
             height = int(request.form.get('height', 0))
             if width <= 0 or height <= 0:
-                return "Invalid width or height", 400
+                return jsonify({"error": "Invalid width or height"}), 400
             image = image.resize((width, height))
 
         elif operation == 'rotate':
@@ -75,9 +95,9 @@ def edit_image():
             crop_height = int(request.form.get('crop_height', 0))
 
             if x < 0 or y < 0 or crop_width <= 0 or crop_height <= 0:
-                return "Invalid crop dimensions", 400
+                return jsonify({"error": "Invalid crop dimensions"}), 400
             if x + crop_width > image.width or y + crop_height > image.height:
-                return "Crop dimensions exceed image size", 400
+                return jsonify({"error": "Crop dimensions exceed image size"}), 400
 
             image = image.crop((x, y, x + crop_width, y + crop_height))
 
@@ -88,7 +108,7 @@ def edit_image():
             elif flip_type == 'horizontal':
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
             else:
-                return "Invalid flip type", 400
+                return jsonify({"error": "Invalid flip type"}), 400
 
         elif operation == 'blur':
             radius = float(request.form.get('blur_radius', 5))
@@ -103,7 +123,7 @@ def edit_image():
             image = Image.eval(image, lambda x: 255 - x)
 
         else:
-            return "Invalid operation", 400
+            return jsonify({"error": "Invalid operation"}), 400
 
         # Save processed image to BytesIO buffer
         image.save(img_io, file_format)
@@ -118,7 +138,7 @@ def edit_image():
         )
 
     except Exception as e:
-        return f"Image processing failed: {str(e)}", 500
+        return jsonify({"error": "Image processing failed", "details": str(e)}), 500
 
 
 if __name__ == "__main__":
