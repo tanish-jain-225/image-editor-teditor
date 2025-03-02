@@ -189,14 +189,14 @@
             <!-- Dynamic Options (Placeholder for all additional options if needed) -->
             <div id="resize-options" class="additional-options">
               <label>Width (px)</label
-              ><input type="number" class="form-control" name="width" />
+              ><input type="number" class="form-control" name="width" required/>
               <label>Height (px)</label
-              ><input type="number" class="form-control" name="height" />
+              ><input type="number" class="form-control" name="height" required/>
             </div>
 
             <div id="rotate-options" class="additional-options">
               <label>Rotation Angle (degrees)</label
-              ><input type="number" class="form-control" name="angle" />
+              ><input type="number" class="form-control" name="angle" required/>
             </div>
 
             <div id="brightness_contrast-options" class="additional-options">
@@ -206,6 +206,7 @@
                 step="0.1"
                 class="form-control"
                 name="brightness"
+                required
               />
               <label>Contrast (0.0 to 2.0)</label
               ><input
@@ -213,18 +214,19 @@
                 step="0.1"
                 class="form-control"
                 name="contrast"
+                required
               />
             </div>
 
             <div id="crop-options" class="additional-options">
               <label>X (px)</label
-              ><input type="number" class="form-control" name="x" />
+              ><input type="number" class="form-control" name="x" required/>
               <label>Y (px)</label
-              ><input type="number" class="form-control" name="y" />
+              ><input type="number" class="form-control" name="y" required/>
               <label>Width (px)</label
-              ><input type="number" class="form-control" name="crop_width" />
+              ><input type="number" class="form-control" name="crop_width" required/>
               <label>Height (px)</label
-              ><input type="number" class="form-control" name="crop_height" />
+              ><input type="number" class="form-control" name="crop_height" required/>
             </div>
 
             <div id="flip-options" class="additional-options">
@@ -242,6 +244,7 @@
                 step="0.1"
                 class="form-control"
                 name="blur_radius"
+                required
               />
             </div>
 
