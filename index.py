@@ -8,17 +8,21 @@ from werkzeug.utils import secure_filename
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.urandom(24) # Secret key for session management
 
 # Flask Limiter setup
 limiter = Limiter(get_remote_address, app=app)
 
-# App configuration
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # Max file size: 10MB
+# Constants
+MAX_SIZE_IMAGE = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-ALLOWED_FORMATS = {'PNG', 'JPEG', 'JPG'}
-DEFAULT_FORMAT = 'PNG'
 MAX_WIDTH, MAX_HEIGHT = 4000, 4000  # Max image dimensions
+ALLOWED_FORMATS = {'PNG', 'JPEG', 'JPG'}
+RATE_LIMIT = "5 per minute"  # Rate limit for the edit endpoint
+DEFAULT_FORMAT = 'PNG'
+
+# App configuration
+app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE # Max file size: 10MB
 
 
 def allowed_file(filename):
@@ -152,7 +156,7 @@ def process_image(image, operation, form):
 
 
 @app.route('/edit', methods=['POST'])
-@limiter.limit("5 per minute")
+@limiter.limit(f"{RATE_LIMIT}")
 def edit_image():
     uploaded_file = request.files.get('file')
 
