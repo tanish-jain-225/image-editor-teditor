@@ -5,5 +5,10 @@
   ],
   "routes": [
     { "src": "/(.*)", "dest": "index.py" }
-  ]
+  ],
+  "functions": {
+    "index.py": {
+      "runtime": "python3.10"  
+    }
+  }
 }
