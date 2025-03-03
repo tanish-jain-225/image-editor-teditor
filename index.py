@@ -6,23 +6,20 @@ from flask_limiter.util import get_remote_address
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from werkzeug.utils import secure_filename
 
-# Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.urandom(24) # Secret key for session management
+app.secret_key = os.urandom(24)
 
-# Flask Limiter setup
+# Flask Limiter
 limiter = Limiter(get_remote_address, app=app)
 
 # Constants
-MAX_SIZE_IMAGE = 10 * 1024 * 1024  # 10MB
+MAX_SIZE_IMAGE = 10 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-MAX_WIDTH, MAX_HEIGHT = 4000, 4000  # Max image dimensions
+MAX_WIDTH, MAX_HEIGHT = 4000, 4000
 ALLOWED_FORMATS = {'PNG', 'JPEG', 'JPG'}
-RATE_LIMIT = "5 per minute"  # Rate limit for the edit endpoint
+RATE_LIMIT = "5 per minute"
 DEFAULT_FORMAT = 'PNG'
-
-# App configuration
-app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE # Max file size: 10MB
+app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE
 
 
 def allowed_file(filename):
@@ -92,8 +89,7 @@ def process_image(image, operation, form):
         return image.convert('L'), None
 
     elif operation == 'resize':
-        width = int(form.get('width', 0))
-        height = int(form.get('height', 0))
+        width, height = int(form.get('width', 0)), int(form.get('height', 0))
         if width <= 0 or height <= 0:
             raise ValueError("Invalid resize dimensions")
         return image.resize((width, height)), None
@@ -103,21 +99,16 @@ def process_image(image, operation, form):
         return image.rotate(angle, expand=True), None
 
     elif operation == 'brightness_contrast':
-        brightness = float(form.get('brightness', 1.0))
-        contrast = float(form.get('contrast', 1.0))
-        enhancer = ImageEnhance.Brightness(image)
-        image = enhancer.enhance(brightness)
-        enhancer = ImageEnhance.Contrast(image)
-        return enhancer.enhance(contrast), None
+        brightness, contrast = float(form.get('brightness', 1.0)), float(form.get('contrast', 1.0))
+        image = ImageEnhance.Brightness(image).enhance(brightness)
+        return ImageEnhance.Contrast(image).enhance(contrast), None
 
     elif operation == 'crop':
         x, y = int(form.get('x', 0)), int(form.get('y', 0))
-        crop_width = int(form.get('crop_width', 0))
-        crop_height = int(form.get('crop_height', 0))
+        crop_width, crop_height = int(form.get('crop_width', 0)), int(form.get('crop_height', 0))
 
         if x < 0 or y < 0 or crop_width <= 0 or crop_height <= 0:
             raise ValueError("Invalid crop dimensions")
-
         if x + crop_width > image.width or y + crop_height > image.height:
             raise ValueError("Crop dimensions exceed image size")
 
@@ -129,13 +120,11 @@ def process_image(image, operation, form):
             return image.transpose(Image.FLIP_TOP_BOTTOM), None
         elif flip_type == 'horizontal':
             return image.transpose(Image.FLIP_LEFT_RIGHT), None
-        else:
-            raise ValueError(
-                f"Invalid flip type '{flip_type}'. Expected 'vertical' or 'horizontal'.")
+        raise ValueError(f"Invalid flip type '{flip_type}'")
 
     elif operation == 'blur':
         radius = float(form.get('blur_radius', 5))
-        return image.filter(ImageFilter.GaussianBlur(radius=radius)), None
+        return image.filter(ImageFilter.GaussianBlur(radius)), None
 
     elif operation == 'sharpen':
         return image.filter(ImageFilter.SHARPEN), None
@@ -145,51 +134,29 @@ def process_image(image, operation, form):
             image = image.convert('RGB')
         return ImageOps.invert(image), None
 
-    # Add new operations here
-    # elif operation == 'new_operation':
-    #     # Process the image here
-    #     return processed_image, forced_format
-
-    else:
-        # Final fallback if the operation is unknown
-        raise ValueError(f"Unknown operation: {operation}")
+    raise ValueError(f"Unknown operation: {operation}")
 
 
 @app.route('/edit', methods=['POST'])
-@limiter.limit(f"{RATE_LIMIT}")
+@limiter.limit(RATE_LIMIT)
 def edit_image():
     uploaded_file = request.files.get('file')
-
     if not uploaded_file or uploaded_file.filename == '':
         raise ValueError("No file uploaded")
 
     if not allowed_file(uploaded_file.filename):
         raise ValueError("Invalid file type. Allowed: PNG, JPG, JPEG")
 
-    filename = secure_filename(uploaded_file.filename)
-
-    try:
-        image = Image.open(uploaded_file.stream)
-
-        if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
-            raise ValueError(
-                f"Image dimensions exceed {MAX_WIDTH}x{MAX_HEIGHT}")
-
-    except Exception:
-        raise ValueError("Invalid image file")
+    image = Image.open(uploaded_file.stream)
+    if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
+        raise ValueError(f"Image dimensions exceed {MAX_WIDTH}x{MAX_HEIGHT}")
 
     operation = request.form.get('operation')
-    file_format = normalize_format(
-        request.form.get('file_format', DEFAULT_FORMAT))
-
+    file_format = normalize_format(request.form.get('file_format', DEFAULT_FORMAT))
     if file_format not in ALLOWED_FORMATS:
         raise ValueError(f"Unsupported file format: {file_format}")
 
-    print(f"Operation: {operation}, Form Data: {dict(request.form)}")
-
-    processed_image, forced_format = process_image(
-        image, operation, request.form)
-
+    processed_image, forced_format = process_image(image, operation, request.form)
     if forced_format:
         file_format = forced_format
 
@@ -200,18 +167,9 @@ def edit_image():
     processed_image.save(img_io, file_format)
     img_io.seek(0)
 
-    mimetype = {
-        'PNG': 'image/png',
-        'JPEG': 'image/jpeg'
-    }.get(file_format, f'image/{file_format.lower()}')
-
-    return send_file(
-        img_io,
-        mimetype=mimetype,
-        as_attachment=True,
-        download_name=f'edited_image.{file_format.lower()}'
-    )
+    return send_file(img_io, mimetype=f'image/{file_format.lower()}', as_attachment=True,
+                     download_name=f'edited_image.{file_format.lower()}')
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run()
