@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         },
         sharpen: { label: "Sharpen", fields: [] },
-        invert: { label: "Invert Colors", fields: [] }, 
+        invert: { label: "Invert Colors", fields: [] },
         // Add more operations here
         // Format: operation_key: { label: "Operation Label", fields: [ { name, label, type, placeholder, step, required, options } ] }, 
     };
@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     link.remove();
 
                     showAlertAndReload("Image processed successfully.");
+
                 } else {
                     showAlertAndReload("Failed to process image.");
                 }
