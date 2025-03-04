@@ -1,8 +1,6 @@
 import os
 import io
 from flask import Flask, render_template, request, send_file, jsonify, send_from_directory
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from werkzeug.utils import secure_filename
 
@@ -10,15 +8,12 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Random secret key for session security
 
-# Initialize Flask-Limiter to rate limit requests
-limiter = Limiter(get_remote_address, app=app)
 
 # Constants for image handling
 MAX_SIZE_IMAGE = 10 * 1024 * 1024  # 10 MB max upload size
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 MAX_WIDTH, MAX_HEIGHT = 4000, 4000  # Max allowed image dimensions
 ALLOWED_FORMATS = {'PNG', 'JPEG', 'JPG'}
-RATE_LIMIT = "5 per minute"  # Rate limit for /edit endpoint
 DEFAULT_FORMAT = 'PNG'  # Default output format if none is provided
 app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE  # Enforce max upload size
 
@@ -44,65 +39,54 @@ def preserve_alpha(original, processed):
         processed.putalpha(a)
     return processed
 
-# Route to serve static images
-
 
 @app.route('/images/<filename>')
 def serve_image(filename):
     return send_from_directory('static/images', filename)
 
-# Serve robots.txt (for SEO crawlers)
+
+@app.route('/<filename>')
+def serve_about(filename):
+    return send_from_directory('static/', filename)
 
 
-@app.route('/robots.txt')
+@app.route('/robots.txt')  # Serve robots.txt (for SEO crawlers)
 def serve_robots():
     return send_from_directory(app.root_path, 'robots.txt')
 
+
 # Serve ads.txt (for Google AdSense or similar services)
-
-
 @app.route('/ads.txt')
 def serve_ads():
     return send_from_directory(app.root_path, 'ads.txt')
 
-# Home page route
 
-
-@app.route('/')
+@app.route('/')  # Home page route
 def index():
     return render_template('index.html')
 
-# Health check endpoint for monitoring
 
-
-@app.route('/health')
+@app.route('/health')  # Health check endpoint for monitoring
 def health_check():
     return jsonify(status='healthy', service='Teditor Backend', pillow_version=Image.__version__)
-
-# Global error handler for 400 errors (Bad Request)
 
 
 @app.errorhandler(400)
 def handle_bad_request(e):
     return jsonify({"error": "Bad Request", "details": str(e)}), 400
 
-# Global error handler for 500 errors (Internal Server Error)
-
 
 @app.errorhandler(500)
 def handle_internal_error(e):
     return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
-
-# Global error handler for ValueErrors (custom validation errors)
 
 
 @app.errorhandler(ValueError)
 def handle_value_error(e):
     return jsonify({"error": str(e)}), 400
 
+
 # Core image processing function - applies requested operation
-
-
 def process_image(image, operation, form):
     if operation == 'cpng':
         return image, 'PNG'  # Convert to PNG
@@ -170,11 +154,8 @@ def process_image(image, operation, form):
     else:
         raise ValueError(f"Unknown operation: {operation}")
 
-# Main image editing endpoint with rate limiting
-
 
 @app.route('/edit', methods=['POST'])
-@limiter.limit(RATE_LIMIT)
 def edit_image():
     # Get uploaded file
     uploaded_file = request.files.get('file')

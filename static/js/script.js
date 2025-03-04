@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!['image/png', 'image/jpeg'].includes(file.type)) return showAlertAndReload("Only PNG and JPG files are allowed.");
             if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) return showAlertAndReload("File size exceeds 10MB.");
             if (!validateRequiredFields()) return showAlertAndReload("Please fill all required fields.");
-            if (!checkRateLimit()) return showAlertAndReload("Rate limit exceeded. Please wait.");
 
             const compressedFile = await compressImage(file);
             if (!compressedFile) return; // Already handled by showAlertAndReload
@@ -187,15 +186,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const input = form.querySelector(`[name="${field.name}"]`);
             return !field.required || (input && input.value.trim() !== "");
         });
-    }
-
-    function checkRateLimit() {
-        const now = Date.now();
-        const requests = JSON.parse(localStorage.getItem('requests') || '[]')
-            .filter(timestamp => now - timestamp < TIME_WINDOW);
-        requests.push(now);
-        localStorage.setItem('requests', JSON.stringify(requests));
-        return requests.length <= MAX_REQUESTS;
     }
 
     function showAlertAndReload(message) {
