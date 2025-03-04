@@ -1,21 +1,29 @@
-/* Global Reset */
+/* ========================= */
+/* Global Reset - Removes default margin, padding and sets box-sizing to border-box for all elements */
+/* ========================= */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Body Styles */
+/* ========================= */
+/* Body - Sets global font, background color and text color */
+/* ========================= */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
+  background-color: #f0f0f0;
   color: #333;
+  line-height: 1.6;
 }
 
-/* Navbar */
+/* ========================= */
+/* Navbar Styles - Basic top navigation bar with a subtle border */
+/* ========================= */
 .navbar {
   background-color: #ffffff;
   border-bottom: 1px solid #ddd;
+  padding: 10px 15px;
 }
 
 .navbar .navbar-brand {
@@ -33,7 +41,9 @@ body {
   margin-right: 8px;
 }
 
-/* Main Content Card */
+/* ========================= */
+/* Main Card - Central container for the form */
+/* ========================= */
 .card {
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
@@ -41,16 +51,22 @@ body {
   padding: 20px;
   max-width: 700px;
   margin: 30px auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
+/* ========================= */
+/* Headings - Simple centered heading with margin */
+/* ========================= */
 h1 {
   font-size: 24px;
   color: #333;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
 }
 
+/* ========================= */
+/* Paragraph Text */
+/* ========================= */
 p {
   font-size: 14px;
   color: #666;
@@ -58,7 +74,9 @@ p {
   margin-bottom: 20px;
 }
 
-/* Form Styles */
+/* ========================= */
+/* Form - Spacing and layout for labels, inputs and select boxes */
+/* ========================= */
 form {
   margin-top: 15px;
 }
@@ -82,7 +100,9 @@ textarea {
   background-color: #fefefe;
 }
 
-/* Buttons */
+/* ========================= */
+/* Buttons - Simple styled buttons with padding */
+/* ========================= */
 button {
   background-color: #007bff;
   color: #fff;
@@ -91,16 +111,17 @@ button {
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-  display: inline-block;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-/* Additional Options Section */
+/* ========================= */
+/* Additional Options Section - Hidden by default */
+/* ========================= */
 .additional-options {
-  background-color: #f1f1f1;
+  background-color: #f8f8f8;
   border: 1px solid #ddd;
   padding: 15px;
   border-radius: 5px;
@@ -108,27 +129,33 @@ button:hover {
   margin-top: 15px;
 }
 
+/* Class to show the additional options section */
 .show-options {
   display: block;
 }
 
-/* Image Preview */
+/* ========================= */
+/* Image Preview - Hidden by default, shown when image is uploaded */
+/* ========================= */
 .image-preview {
   display: none;
   max-width: 100%;
   max-height: 300px;
   margin-top: 10px;
   border: 1px solid #ddd;
-  background-color: #f8f8f8;
+  background-color: #f9f9f9;
   padding: 5px;
   border-radius: 5px;
 }
 
+/* Class to show image preview */
 .image-preview.show {
   display: block;
 }
 
-/* Footer */
+/* ========================= */
+/* Footer - Simple footer with small text and border */
+/* ========================= */
 footer {
   font-size: 12px;
   text-align: center;
@@ -142,7 +169,9 @@ footer p {
   margin: 0;
 }
 
-/* Responsive Design */
+/* ========================= */
+/* Responsive Design - Adjust padding and font size on smaller screens */
+/* ========================= */
 @media (max-width: 768px) {
   .card {
     padding: 15px;
@@ -150,5 +179,9 @@ footer p {
 
   h1 {
     font-size: 20px;
+  }
+
+  button {
+    width: 100%; /* Full-width buttons for smaller screens */
   }
 }

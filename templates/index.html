@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- SEO Meta Tags -->
+    <!-- SEO Meta Tags for better search engine visibility -->
     <title>Teditor - Free Online Image Editor | Edit, Resize, Crop & More</title>
     <meta name="title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More" />
     <meta name="description" content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur." />
     <meta name="keywords" content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter" />
     <meta name="author" content="Teditor Team" />
 
-    <!-- Open Graph Tags -->
+    <!-- Open Graph Tags for better sharing experience on social media platforms -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.teditor.com/" />
     <meta property="og:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More" />
@@ -20,29 +20,31 @@
     <meta property="og:site_name" content="Teditor" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter Card Tags for better display on Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://www.teditor.com/" />
     <meta name="twitter:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More" />
     <meta name="twitter:description" content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily." />
     <meta name="twitter:image" content="https://www.teditor.com/assets/social-preview.png" />
 
-    <!-- Favicon -->
+    <!-- Favicon (site icon in browser tab) and Apple Touch Icon -->
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/x-icon" />
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icon.png') }}" />
 
-    <!-- Preconnect & Preload -->
+    <!-- Preconnect & Preload for performance optimization -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="canonical" href="https://www.teditor.com/" />
 
-    <!-- CSS -->
+    <!-- Main CSS file for custom styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+    <!-- Preload Bootstrap CSS for faster page rendering -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" as="style" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    <!-- Structured Data (JSON-LD) -->
+    <!-- Structured Data (Schema.org JSON-LD) for better SEO -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -58,16 +60,16 @@
       }
     </script>
 
-    <!-- Image Compression Library -->
+    <!-- Image Compression Library for compressing large files before upload -->
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
-    <!-- Google AdSense -->
+    <!-- Google AdSense for showing ads to monetize the site -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2442420859858757" crossorigin="anonymous"></script>
   </head>
 
   <body class="bg-light d-flex flex-column min-vh-100">
 
-    <!-- Navbar -->
+    <!-- Navbar Section - Brand logo and link to homepage -->
     <nav class="navbar navbar-light bg-white shadow-sm py-2">
       <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
@@ -77,26 +79,29 @@
       </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Main Content Section -->
     <div class="container flex-grow-1 py-4">
       <div class="card shadow">
         <div class="card-body">
+          <!-- Main Heading -->
           <h1 class="fs-4 text-center mb-4">Teditor - Edit Your Images Online</h1>
+          <!-- Short Description -->
           <p class="text-muted text-center">Edit images online — fast, free & hassle-free!</p>
 
+          <!-- Image Upload Form -->
           <form id="editor-form" action="/edit" method="post" enctype="multipart/form-data">
-            <!-- Dynamic form fields will be populated here by script.js -->
+            <!-- Dynamic form fields (file upload, operation select, etc.) will be injected here by script.js -->
           </form>
         </div>
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Footer Section -->
     <footer class="text-center py-2 mt-auto bg-light">
       <p class="text-muted mb-1">&copy; 2024 Teditor - Edit Your Images Online</p>
     </footer>
 
-    <!-- Script to Load Dynamic Form Functionality -->
+    <!-- Load Dynamic Form Generation Script -->
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 
   </body>

@@ -1,10 +1,13 @@
+// Wait for the DOM to fully load before initializing
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('editor-form');
-    const MAX_FILE_SIZE_MB = 10;
-    const COMPRESSED_TARGET_SIZE_MB = 4; // target file size for Vercel safety
-    const MAX_REQUESTS = 5;
-    const TIME_WINDOW = 60 * 1000; // 1 minute
 
+    // Configuration constants
+    const MAX_FILE_SIZE_MB = 10;                  // Maximum allowed file size
+    const COMPRESSED_TARGET_SIZE_MB = 4;           // Target compressed file size
+    const MAX_REQUESTS = 5;                        // Max requests per minute
+    const TIME_WINDOW = 60 * 1000;                 // Time window in milliseconds
+
+    // Image editing operation configuration with dynamic fields
     const operationsConfig = {
         cpng: { label: "Convert to PNG", fields: [] },
         cjpg: { label: "Convert to JPG", fields: [] },
@@ -51,9 +54,14 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         },
         sharpen: { label: "Sharpen", fields: [] },
-        invert: { label: "Invert Colors", fields: [] }
+        invert: { label: "Invert Colors", fields: [] }, 
+        // Add more operations here
+        // Format: operation_key: { label: "Operation Label", fields: [ { name, label, type, placeholder, step, required, options } ] }, 
     };
 
+    const form = document.getElementById('editor-form');
+
+    // Initialize form and populate operation dropdown
     initializeForm();
 
     function initializeForm() {
@@ -63,9 +71,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <option value="">Select Operation</option>
             </select>
             <div id="dynamic-options"></div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-success">Download</button>
         `;
-
         populateOperationDropdown();
         attachEventListeners();
     }
@@ -78,19 +85,16 @@ document.addEventListener('DOMContentLoaded', function () {
             option.textContent = config.label;
             operationSelect.appendChild(option);
         });
-
-        operationSelect.addEventListener('change', () => {
-            renderDynamicFields(operationSelect.value);
-        });
+        operationSelect.addEventListener('change', () => renderDynamicFields(operationSelect.value));
     }
 
     function renderDynamicFields(operationKey) {
-        const dynamicOptionsContainer = document.getElementById('dynamic-options');
-        dynamicOptionsContainer.innerHTML = '';
+        const container = document.getElementById('dynamic-options');
+        container.innerHTML = '';
 
         (operationsConfig[operationKey]?.fields || []).forEach(field => {
-            const fieldWrapper = document.createElement('div');
-            fieldWrapper.classList.add('mb-3');
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('mb-3');
 
             const label = document.createElement('label');
             label.textContent = field.label;
@@ -102,10 +106,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 input = document.createElement('select');
                 input.classList.add('form-select');
                 input.name = field.name;
-                field.options.forEach(optionValue => {
+                field.options.forEach(opt => {
                     const option = document.createElement('option');
-                    option.value = optionValue.toLowerCase();
-                    option.textContent = optionValue;
+                    option.value = opt.toLowerCase();
+                    option.textContent = opt;
                     input.appendChild(option);
                 });
             } else {
@@ -116,74 +120,69 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (field.placeholder) input.placeholder = field.placeholder;
                 if (field.step) input.step = field.step;
             }
-
             if (field.required) input.required = true;
 
-            fieldWrapper.appendChild(label);
-            fieldWrapper.appendChild(input);
-            dynamicOptionsContainer.appendChild(fieldWrapper);
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            container.appendChild(wrapper);
         });
     }
 
     async function compressImage(file) {
-        const options = {
-            maxSizeMB: COMPRESSED_TARGET_SIZE_MB,
-            maxWidthOrHeight: 2000,
-            useWebWorker: true
-        };
-
+        const options = { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, maxWidthOrHeight: 2000, useWebWorker: true };
         try {
             return await imageCompression(file, options);
-        } catch (error) {
-            alert("Image compression failed. Please try a smaller file.");
-            throw error;
+        } catch {
+            showAlertAndReload("Image compression failed. Try a smaller file.");
         }
     }
 
     function attachEventListeners() {
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
             const fileInput = document.getElementById('file');
             const file = fileInput.files[0];
 
-            if (!file) return alert("Please upload an image.");
-            if (!['image/png', 'image/jpeg'].includes(file.type)) return alert("Only PNG and JPG are allowed.");
-            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) return alert("File exceeds 10MB limit.");
-            if (!validateRequiredFields()) return alert("Please fill out all required fields.");
-            if (!checkRateLimit()) return alert("Rate limit exceeded. Wait a minute.");
+            if (!file) return showAlertAndReload("Please upload an image.");
+            if (!['image/png', 'image/jpeg'].includes(file.type)) return showAlertAndReload("Only PNG and JPG files are allowed.");
+            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) return showAlertAndReload("File size exceeds 10MB.");
+            if (!validateRequiredFields()) return showAlertAndReload("Please fill all required fields.");
+            if (!checkRateLimit()) return showAlertAndReload("Rate limit exceeded. Please wait.");
+
+            const compressedFile = await compressImage(file);
+            if (!compressedFile) return; // Already handled by showAlertAndReload
+
+            const formData = new FormData(form);
+            formData.set('file', compressedFile, compressedFile.name);
 
             try {
-                const compressedFile = await compressImage(file);
-
-                const formData = new FormData(form);
-                formData.set('file', compressedFile, compressedFile.name);
-
                 const response = await fetch('/edit', { method: 'POST', body: formData });
 
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
+
                     const link = document.createElement('a');
                     link.href = url;
                     link.download = 'edited_image.png';
                     document.body.appendChild(link);
                     link.click();
                     link.remove();
+
+                    showAlertAndReload("Image processed successfully.");
                 } else {
-                    alert("Failed to process image.");
+                    showAlertAndReload("Failed to process image.");
                 }
-            } catch (error) {
-                console.error("Image processing error:", error);
-                alert("An error occurred. Please try again.");
+            } catch {
+                showAlertAndReload("Error occurred during image processing.");
             }
         });
     }
 
     function validateRequiredFields() {
-        const selectedOperation = document.getElementById('operation').value;
-        const fields = operationsConfig[selectedOperation]?.fields || [];
-        return fields.every(field => {
+        const operation = document.getElementById('operation').value;
+        return (operationsConfig[operation]?.fields || []).every(field => {
             const input = form.querySelector(`[name="${field.name}"]`);
             return !field.required || (input && input.value.trim() !== "");
         });
@@ -193,9 +192,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const now = Date.now();
         const requests = JSON.parse(localStorage.getItem('requests') || '[]')
             .filter(timestamp => now - timestamp < TIME_WINDOW);
-
         requests.push(now);
         localStorage.setItem('requests', JSON.stringify(requests));
         return requests.length <= MAX_REQUESTS;
+    }
+
+    function showAlertAndReload(message) {
+        alert(message);
+        location.reload();
     }
 });
