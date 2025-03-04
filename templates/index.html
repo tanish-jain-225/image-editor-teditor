@@ -1,99 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Required Meta Tags for character set and responsive design -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- SEO Meta Tags to improve search engine visibility -->
-    <meta
-      name="title"
-      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
-    />
-    <meta
-      name="description"
-      content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur."
-    />
-    <meta
-      name="keywords"
-      content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter"
-    />
+    <!-- SEO Meta Tags -->
+    <title>Teditor - Free Online Image Editor | Edit, Resize, Crop & More</title>
+    <meta name="title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More" />
+    <meta name="description" content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur." />
+    <meta name="keywords" content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter" />
     <meta name="author" content="Teditor Team" />
 
-    <!-- Open Graph Tags for social media previews -->
+    <!-- Open Graph Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.teditor.com/" />
-    <meta
-      property="og:title"
-      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
-    />
-    <meta
-      property="og:description"
-      content="Edit images online for free with Teditor. Crop, resize, convert to PNG or JPG, apply filters, and more. Simple, fast, and free!"
-    />
-    <meta
-      property="og:image"
-      content="https://www.teditor.com/assets/social-preview.png"
-    />
+    <meta property="og:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More" />
+    <meta property="og:description" content="Edit images online for free with Teditor. Crop, resize, convert to PNG or JPG, apply filters, and more." />
+    <meta property="og:image" content="https://www.teditor.com/assets/social-preview.png" />
     <meta property="og:site_name" content="Teditor" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter Card Meta Tags for Twitter previews -->
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://www.teditor.com/" />
-    <meta
-      name="twitter:title"
-      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
-    />
-    <meta
-      name="twitter:description"
-      content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily."
-    />
-    <meta
-      name="twitter:image"
-      content="https://www.teditor.com/assets/social-preview.png"
-    />
+    <meta name="twitter:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More" />
+    <meta name="twitter:description" content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily." />
+    <meta name="twitter:image" content="https://www.teditor.com/assets/social-preview.png" />
 
-    <!-- Page Title -->
-    <title>
-      Teditor - Free Online Image Editor | Edit, Resize, Crop & More
-    </title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icon.png') }}" />
 
-    <!-- Favicon and Apple Touch Icon -->
-    <link
-      rel="shortcut icon"
-      href="{{ url_for('static', filename='images/icon.png') }}"
-      type="image/x-icon"
-    />
-    <link
-      rel="apple-touch-icon"
-      href="{{ url_for('static', filename='images/icon.png') }}"
-    />
-
-    <!-- Preconnect for faster external resource loading -->
+    <!-- Preconnect & Preload -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Canonical URL to avoid duplicate content issues -->
     <link rel="canonical" href="https://www.teditor.com/" />
 
-    <!-- Preload critical CSS files -->
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
-    <link
-      rel="preload"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      as="style"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" as="style" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    <!-- Structured Data (Schema.org JSON-LD) for better SEO -->
+    <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -109,64 +58,46 @@
       }
     </script>
 
-    <!-- Google AdSense for ads (monetization) -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2442420859858757"
-      crossorigin="anonymous"
-    ></script>
+    <!-- Image Compression Library -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2442420859858757" crossorigin="anonymous"></script>
   </head>
 
   <body class="bg-light d-flex flex-column min-vh-100">
-    <!-- Navbar Section -->
+
+    <!-- Navbar -->
     <nav class="navbar navbar-light bg-white shadow-sm py-2">
       <div class="container">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-          <img
-            src="{{ url_for('static', filename='images/icon.png') }}"
-            width="32"
-            class="me-2"
-            alt="Teditor Logo - Free Online Image Editor"
-            loading="lazy"
-          />
+          <img src="{{ url_for('static', filename='images/icon.png') }}" width="32" class="me-2" alt="Teditor Logo - Free Online Image Editor" loading="lazy" />
           Teditor
         </a>
       </div>
     </nav>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <div class="container flex-grow-1 py-4">
       <div class="card shadow">
         <div class="card-body">
-          <h1 class="fs-4 text-center mb-4">
-            Teditor - Edit Your Images Online
-          </h1>
-          <p class="text-muted text-center">
-            Edit images online — fast, free & hassle-free!
-          </p>
+          <h1 class="fs-4 text-center mb-4">Teditor - Edit Your Images Online</h1>
+          <p class="text-muted text-center">Edit images online — fast, free & hassle-free!</p>
 
-          <!-- Placeholder for the dynamic form (created by external script.js) -->
-          <form
-            id="editor-form"
-            action="/edit"
-            method="post"
-            enctype="multipart/form-data"
-          ></form>
+          <form id="editor-form" action="/edit" method="post" enctype="multipart/form-data">
+            <!-- Dynamic form fields will be populated here by script.js -->
+          </form>
         </div>
       </div>
     </div>
 
-    <!-- Footer Section -->
+    <!-- Footer -->
     <footer class="text-center py-2 mt-auto bg-light">
-      <p class="text-muted mb-1">
-        &copy; 2024 Teditor - Edit Your Images Online
-      </p>
+      <p class="text-muted mb-1">&copy; 2024 Teditor - Edit Your Images Online</p>
     </footer>
 
-    <!-- External JavaScript for generating dynamic form options -->
-    <script
-      src="{{ url_for('static', filename='js/script.js') }}"
-      defer
-    ></script>
+    <!-- Script to Load Dynamic Form Functionality -->
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+
   </body>
 </html>
