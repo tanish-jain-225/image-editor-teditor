@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     link.click();
                     link.remove();
 
-                    showAlertAndReload("Image processed successfully.");
+                    // showAlertAndReload("Image processed successfully.");
 
                 } else {
                     showAlertAndReload("Failed to process image.");
