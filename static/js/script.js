@@ -1,13 +1,9 @@
 // Wait for the DOM to fully load before initializing
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Configuration constants
-    const MAX_FILE_SIZE_MB = 10;                  // Maximum allowed file size
-    const COMPRESSED_TARGET_SIZE_MB = 4;           // Target compressed file size
-    const MAX_REQUESTS = 5;                        // Max requests per minute
-    const TIME_WINDOW = 60 * 1000;                 // Time window in milliseconds
+    const COMPRESSED_TARGET_SIZE_MB = 4;
+    const MAX_FILE_SIZE_MB = 10;
 
-    // Image editing operation configuration with dynamic fields
     const operationsConfig = {
         cpng: { label: "Convert to PNG", fields: [] },
         cjpg: { label: "Convert to JPG", fields: [] },
@@ -56,12 +52,12 @@ document.addEventListener('DOMContentLoaded', function () {
         sharpen: { label: "Sharpen", fields: [] },
         invert: { label: "Invert Colors", fields: [] },
         // Add more operations here
-        // Format: operation_key: { label: "Operation Label", fields: [ { name, label, type, placeholder, step, required, options } ] }, 
+        // Example - { label: "Operation Name", fields: [{ name: "field_name", label: "Field Label", type: "text", placeholder: "Field Placeholder", required: true }] }
     };
 
     const form = document.getElementById('editor-form');
+    const notifier = document.getElementById('notifier');
 
-    // Initialize form and populate operation dropdown
     initializeForm();
 
     function initializeForm() {
@@ -72,6 +68,12 @@ document.addEventListener('DOMContentLoaded', function () {
             </select>
             <div id="dynamic-options"></div>
             <button type="submit" class="btn btn-success">Download</button>
+            <div id="loader" style="display:none; margin-top:10px; text-align:center;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Processing image, please wait...</p>
+            </div>
         `;
         populateOperationDropdown();
         attachEventListeners();
@@ -98,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const label = document.createElement('label');
             label.textContent = field.label;
-            label.classList.add('form-label');
             label.setAttribute('for', field.name);
 
             let input;
@@ -128,68 +129,92 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    async function compressImage(file) {
-        const options = { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, maxWidthOrHeight: 2000, useWebWorker: true };
-        try {
-            return await imageCompression(file, options);
-        } catch {
-            showAlertAndReload("Image compression failed. Try a smaller file.");
-        }
-    }
-
     function attachEventListeners() {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            clearNotifier();
 
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
+            const errors = validateForm();
+            if (errors.length > 0) {
+                showErrors(errors);
+                return;
+            }
 
-            if (!file) return showAlertAndReload("Please upload an image.");
-            if (!['image/png', 'image/jpeg'].includes(file.type)) return showAlertAndReload("Only PNG and JPG files are allowed.");
-            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) return showAlertAndReload("File size exceeds 10MB.");
-            if (!validateRequiredFields()) return showAlertAndReload("Please fill all required fields.");
-
+            const file = document.getElementById('file').files[0];
             const compressedFile = await compressImage(file);
-            if (!compressedFile) return; // Already handled by showAlertAndReload
+            if (!compressedFile) return;
 
             const formData = new FormData(form);
             formData.set('file', compressedFile, compressedFile.name);
+
+            setProcessingState(true);  // Disable button and show loader
 
             try {
                 const response = await fetch('/edit', { method: 'POST', body: formData });
 
                 if (response.ok) {
                     const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'edited_image.png';
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-
-                    // showAlertAndReload("Image processed successfully.");
-
+                    downloadBlob(blob, 'edited_image.png');
+                    showSuccess();
                 } else {
-                    showAlertAndReload("Failed to process image.");
+                    showErrors(["Failed to process image."]);
                 }
             } catch {
-                showAlertAndReload("Error occurred during image processing.");
+                showErrors(["Error occurred while processing the image."]);
+            } finally {
+                setProcessingState(false);  // Re-enable button and hide loader
             }
         });
     }
 
-    function validateRequiredFields() {
-        const operation = document.getElementById('operation').value;
-        return (operationsConfig[operation]?.fields || []).every(field => {
-            const input = form.querySelector(`[name="${field.name}"]`);
-            return !field.required || (input && input.value.trim() !== "");
-        });
+    function setProcessingState(isProcessing) {
+        const button = form.querySelector('button[type="submit"]');
+        const loader = document.getElementById('loader');
+
+        button.disabled = isProcessing;
+        loader.style.display = isProcessing ? 'block' : 'none';
     }
 
-    function showAlertAndReload(message) {
-        alert(message);
-        location.reload();
+    function validateForm() {
+        const errors = [];
+        const file = document.getElementById('file').files[0];
+        const operation = document.getElementById('operation').value;
+
+        if (!file) {
+            errors.push("Please select a file.");
+        } else {
+            if (!['image/png', 'image/jpeg'].includes(file.type)) {
+                errors.push("Only PNG and JPG files are allowed.");
+            }
+            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+                errors.push(`File size must be under ${MAX_FILE_SIZE_MB}MB.`);
+            }
+        }
+
+        if (!operation) errors.push("Please select an operation.");
+
+        (operationsConfig[operation]?.fields || []).forEach(field => {
+            const input = form.querySelector(`[name="${field.name}"]`);
+            if (field.required && (!input || input.value.trim() === '')) {
+                errors.push(`${field.label} is required.`);
+            }
+        });
+
+        return errors;
     }
+
+    async function compressImage(file) {
+        const options = { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, maxWidthOrHeight: 2000, useWebWorker: true };
+        try {
+            return await imageCompression(file, options);
+        } catch {
+            showErrors(["Image compression failed."]);
+            return null;
+        }
+    }
+
+    function showErrors(errors) { notifier.innerHTML = `<div><span class='text-danger'>Image process failed!</span> <a href="/" class="text-decoration-none">Try Again</a></div>`; }
+    function showSuccess() { notifier.innerHTML = `<div><span class='text-success'>Image processed successfully!</span> <a href="/" class="text-decoration-none">Process Another</a></div>`; }
+    function clearNotifier() { notifier.innerHTML = ''; }
+    function downloadBlob(blob, filename) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); }
 });

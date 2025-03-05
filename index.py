@@ -10,12 +10,12 @@ app.secret_key = os.urandom(24)  # Random secret key for session security
 
 
 # Constants for image handling
-MAX_SIZE_IMAGE = 10 * 1024 * 1024  # 10 MB max upload size
+# MAX_SIZE_IMAGE = 10 * 1024 * 1024  # 10 MB max upload size
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 MAX_WIDTH, MAX_HEIGHT = 4000, 4000  # Max allowed image dimensions
 ALLOWED_FORMATS = {'PNG', 'JPEG', 'JPG'}
 DEFAULT_FORMAT = 'PNG'  # Default output format if none is provided
-app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE  # Enforce max upload size
+# app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE  # Enforce max upload size
 
 # Helper function to check if a file has an allowed extension
 
