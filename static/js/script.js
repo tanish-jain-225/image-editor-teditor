@@ -1,6 +1,4 @@
-// Wait for the DOM to fully load before initializing
 document.addEventListener('DOMContentLoaded', function () {
-
     const COMPRESSED_TARGET_SIZE_MB = 4;
     const MAX_FILE_SIZE_MB = 10;
 
@@ -50,9 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         },
         sharpen: { label: "Sharpen", fields: [] },
-        invert: { label: "Invert Colors", fields: [] },
-        // Add more operations here
-        // Example - { label: "Operation Name", fields: [{ name: "field_name", label: "Field Label", type: "text", placeholder: "Field Placeholder", required: true }] }
+        invert: { label: "Invert Colors", fields: [] }
     };
 
     const form = document.getElementById('editor-form');
@@ -132,11 +128,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function attachEventListeners() {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            clearNotifier();
+            showMessage('', '');
 
             const errors = validateForm();
             if (errors.length > 0) {
-                showErrors(errors);
+                showMessage('error', errors.join(' '));
                 return;
             }
 
@@ -147,22 +143,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(form);
             formData.set('file', compressedFile, compressedFile.name);
 
-            setProcessingState(true);  // Disable button and show loader
+            setProcessingState(true);
 
             try {
                 const response = await fetch('/edit', { method: 'POST', body: formData });
-
                 if (response.ok) {
                     const blob = await response.blob();
                     downloadBlob(blob, 'edited_image.png');
-                    showSuccess();
+                    showMessage('success', 'Image processed successfully! <a href="/" class="text-decoration-none">Process Another</a>');
                 } else {
-                    showErrors(["Failed to process image."]);
+                    showMessage('error', 'Failed to process image. <a href="/" class="text-decoration-none">Try Again</a>');
                 }
             } catch {
-                showErrors(["Error occurred while processing the image."]);
+                showMessage('error', 'Error occurred while processing the image. <a href="/" class="text-decoration-none">Try Again</a>');
             } finally {
-                setProcessingState(false);  // Re-enable button and hide loader
+                setProcessingState(false);
             }
         });
     }
@@ -180,15 +175,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const file = document.getElementById('file').files[0];
         const operation = document.getElementById('operation').value;
 
-        if (!file) {
-            errors.push("Please select a file.");
-        } else {
-            if (!['image/png', 'image/jpeg'].includes(file.type)) {
-                errors.push("Only PNG and JPG files are allowed.");
-            }
-            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                errors.push(`File size must be under ${MAX_FILE_SIZE_MB}MB.`);
-            }
+        if (!file) errors.push("Please select a file.");
+        else {
+            if (!['image/png', 'image/jpeg'].includes(file.type)) errors.push("Only PNG and JPG files are allowed. <a href='/' class='text-decoration-none'>Try Again</a>");
+            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) errors.push(`File size must be under ${MAX_FILE_SIZE_MB}MB. <a href="/" class="text-decoration-none">Try Again</a>`);
         }
 
         if (!operation) errors.push("Please select an operation.");
@@ -204,17 +194,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function compressImage(file) {
-        const options = { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, maxWidthOrHeight: 2000, useWebWorker: true };
+        const options = { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, useWebWorker: true };
         try {
             return await imageCompression(file, options);
-        } catch {
-            showErrors(["Image compression failed."]);
+        } catch (error) {
+            showMessage('error', 'Image compression failed. <a href="/" class="text-decoration-none">Try Again</a>');
             return null;
         }
     }
 
-    function showErrors(errors) { notifier.innerHTML = `<div><span class='text-danger'>Image process failed!</span> <a href="/" class="text-decoration-none">Try Again</a></div>`; }
-    function showSuccess() { notifier.innerHTML = `<div><span class='text-success'>Image processed successfully!</span> <a href="/" class="text-decoration-none">Process Another</a></div>`; }
-    function clearNotifier() { notifier.innerHTML = ''; }
-    function downloadBlob(blob, filename) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); }
+    function showMessage(type, message) {
+        notifier.innerHTML = type === 'success' ? `<span class='text-success'>${message}</span>` :
+                             type === 'error' ? `<span class='text-danger'>${message}</span>` : '';
+    }
+
+    function downloadBlob(blob, filename) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
 });
