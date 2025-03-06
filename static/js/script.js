@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showMessage('', '');
             const errors = validateForm();
             if (errors.length > 0) {
-                showMessage('error', errors.join(' '));
+                handleCustomError('formValidationError', errors.join(' '));
                 return;
             }
             const file = document.getElementById('file').files[0];
@@ -108,13 +108,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     downloadBlob(blob, 'edited_image.png');
                     showMessage('success', 'Image processed successfully! <a href="/" class="text-decoration-none">Process Another</a>');
                 } else {
-                    showMessage('error', 'Failed to process image. <a href="/" class="text-decoration-none">Try Again</a>');
+                    handleCustomError('serverError', 'Failed to process image. <a href="/" class="text-decoration-none">Try Again</a>');
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
-                    showMessage('error', 'Image processing was cancelled by the user. <a href="/" class="text-decoration-none">Try Again</a>');
+                    handleCustomError('abortError', 'Image processing was cancelled by the user. <a href="/" class="text-decoration-none">Try Again</a>');
                 } else {
-                    showMessage('error', error.message);
+                    handleCustomError('networkError', error.message);
                 }
             } finally {
                 setProcessingState(false);
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             return await imageCompression(file, { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, useWebWorker: true });
         } catch {
-            showMessage('error', 'Image compression failed.');
+            handleCustomError('compressionError', 'Image compression failed.');
             return null;
         }
     }
@@ -180,6 +180,29 @@ document.addEventListener('DOMContentLoaded', function () {
             return await fetch(url, options);
         } finally {
             clearTimeout(timer);
+        }
+    }
+
+    function handleCustomError(errorType, message) {
+        // Customize messages based on the error type
+        switch (errorType) {
+            case 'formValidationError':
+                showMessage('error', `Form validation failed: ${message}`);
+                break;
+            case 'compressionError':
+                showMessage('error', `Compression Error: ${message}`);
+                break;
+            case 'serverError':
+                showMessage('error', `Server Error: ${message}`);
+                break;
+            case 'abortError':
+                showMessage('error', `Abort Error: ${message}`);
+                break;
+            case 'networkError':
+                showMessage('error', `Network Error: ${message}`);
+                break;
+            default:
+                showMessage('error', `An unknown error occurred: ${message}`);
         }
     }
 });
