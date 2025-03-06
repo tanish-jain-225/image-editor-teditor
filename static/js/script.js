@@ -1,17 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const COMPRESSED_TARGET_SIZE_MB = 4;
-    const MAX_FILE_SIZE_MB = 10;
-    const REQUEST_TIMEOUT_MS = 60000; // 60 seconds
+    const COMPRESSED_TARGET_SIZE_MB = 4;        // Target size after compression
+    const MAX_FILE_SIZE_MB = 10;                 // Max file size limit
+    const MAX_WIDTH = 5000;                       // Max image width allowed
+    const MAX_HEIGHT = 5000;                      // Max image height allowed
 
+    // Config for different image operations
     const operationsConfig = {
         cpng: { label: "Convert to PNG", fields: [] },
-        cjpg: { label: "Convert to JPG", fields: [] },
         cgray: { label: "Convert to Grayscale", fields: [] },
-        resize: { label: "Resize", fields: [{ name: "width", label: "Width (px)", type: "number", required: true }, { name: "height", label: "Height (px)", type: "number", required: true }] },
-        rotate: { label: "Rotate", fields: [{ name: "angle", label: "Rotation Angle (°)", type: "number", required: true }] },
-        crop: { label: "Crop", fields: [{ name: "x", label: "X Coordinate", type: "number", required: true }, { name: "y", label: "Y Coordinate", type: "number", required: true }, { name: "crop_width", label: "Crop Width (px)", type: "number", required: true }, { name: "crop_height", label: "Crop Height (px)", type: "number", required: true }] },
-        brightness_contrast: { label: "Brightness & Contrast", fields: [{ name: "brightness", label: "Brightness (0.0 to 2.0)", type: "number", step: "0.1", required: true }, { name: "contrast", label: "Contrast (0.0 to 2.0)", type: "number", step: "0.1", required: true }] },
-        flip: { label: "Flip", fields: [{ name: "flip_type", label: "Flip Direction", type: "select", options: ["Horizontal", "Vertical"], required: true }] },
+        resize: {
+            label: "Resize", fields: [
+                { name: "width", label: "Width (px)", type: "number", required: true },
+                { name: "height", label: "Height (px)", type: "number", required: true }
+            ]
+        },
+        rotate: {
+            label: "Rotate", fields: [
+                { name: "angle", label: "Rotation Angle (°)", type: "number", required: true }
+            ]
+        },
+        crop: {
+            label: "Crop", fields: [
+                { name: "x", label: "X Coordinate", type: "number", required: true },
+                { name: "y", label: "Y Coordinate", type: "number", required: true },
+                { name: "crop_width", label: "Crop Width (px)", type: "number", required: true },
+                { name: "crop_height", label: "Crop Height (px)", type: "number", required: true }
+            ]
+        },
+        brightness_contrast: {
+            label: "Brightness & Contrast", fields: [
+                { name: "brightness", label: "Brightness (0.0 to 2.0)", type: "number", step: "0.1", required: true },
+                { name: "contrast", label: "Contrast (0.0 to 2.0)", type: "number", step: "0.1", required: true }
+            ]
+        },
+        flip: {
+            label: "Flip", fields: [
+                { name: "flip_type", label: "Flip Direction", type: "select", options: ["Horizontal", "Vertical"], required: true }
+            ]
+        },
         blur: { label: "Blur", fields: [{ name: "blur_radius", label: "Blur Radius (px)", type: "number", required: true }] },
         sharpen: { label: "Sharpen", fields: [] },
         invert: { label: "Invert Colors", fields: [] }
@@ -19,10 +45,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const form = document.getElementById('editor-form');
     const notifier = document.getElementById('notifier');
-    let abortController = null;
+    let abortController = null;  // To handle cancellation
 
     initializeForm();
 
+    // Initialize form elements and event listeners
     function initializeForm() {
         form.innerHTML = `
             <input type="file" id="file" name="file" accept="image/*" class="form-control mb-3" required>
@@ -41,6 +68,35 @@ document.addEventListener('DOMContentLoaded', function () {
         attachEventListeners();
     }
 
+    // Handle cancellation of processing
+    function setProcessingState(isProcessing) {
+        const loader = document.getElementById('loader');
+        const submitButton = form.querySelector('button[type="submit"]');
+    
+        if (isProcessing) {
+            loader.style.display = 'block';
+            submitButton.disabled = true;
+    
+            // Setup abort controller for cancellation
+            abortController = new AbortController();
+    
+            // Attach cancel button click event
+            const cancelButton = document.getElementById('cancel-button');
+            cancelButton.onclick = () => {
+                abortController.abort();  // Trigger fetch abort
+                setProcessingState(false);  // Reset processing state
+                showMessage('error', 'Image processing aborted by user.');  // Show aborted message with link
+            };
+        } else {
+            loader.style.display = 'none';
+            submitButton.disabled = false;
+            abortController = null;  // Clear abort controller when not processing
+        }
+    }
+    
+
+
+    // Populate the operations dropdown
     function populateOperationDropdown() {
         const operationSelect = document.getElementById('operation');
         Object.entries(operationsConfig).forEach(([key, config]) => {
@@ -52,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
         operationSelect.addEventListener('change', () => renderDynamicFields(operationSelect.value));
     }
 
+    // Render operation-specific input fields dynamically
     function renderDynamicFields(operationKey) {
         const container = document.getElementById('dynamic-options');
         container.innerHTML = '';
@@ -60,12 +117,11 @@ document.addEventListener('DOMContentLoaded', function () {
             wrapper.classList.add('mb-3');
             const label = document.createElement('label');
             label.textContent = field.label;
-            label.setAttribute('for', field.name);
-            let input;
+            const input = document.createElement(field.type === 'select' ? 'select' : 'input');
+            input.name = field.name;
+            input.classList.add('form-control');
+
             if (field.type === 'select') {
-                input = document.createElement('select');
-                input.classList.add('form-select');
-                input.name = field.name;
                 field.options.forEach(opt => {
                     const option = document.createElement('option');
                     option.value = opt.toLowerCase();
@@ -73,32 +129,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     input.appendChild(option);
                 });
             } else {
-                input = document.createElement('input');
                 input.type = field.type;
-                input.classList.add('form-control');
-                input.name = field.name;
+                if (field.step) input.step = field.step;
             }
+
             if (field.required) input.required = true;
-            wrapper.appendChild(label);
-            wrapper.appendChild(input);
+            wrapper.append(label, input);
             container.appendChild(wrapper);
         });
     }
 
+    // Attach event listeners
     function attachEventListeners() {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             showMessage('', '');
-            const errors = validateForm();
+
+            const errors = await validateForm();
             if (errors.length > 0) {
                 handleCustomError('formValidationError', errors.join(' '));
                 return;
             }
+
             const file = document.getElementById('file').files[0];
             const compressedFile = await compressImage(file);
             if (!compressedFile) return;
+
             const formData = new FormData(form);
             formData.set('file', compressedFile, compressedFile.name);
+
             setProcessingState(true);
 
             try {
@@ -106,63 +165,88 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (response.ok) {
                     const blob = await response.blob();
                     downloadBlob(blob, 'edited_image.png');
-                    showMessage('success', 'Image processed successfully! <a href="/" class="text-decoration-none">Process Another</a>');
+                    showMessage('success', 'Image processed successfully!');
                 } else {
-                    handleCustomError('serverError', 'Failed to process image. <a href="/" class="text-decoration-none">Try Again</a>');
+                    handleCustomError('serverError', 'Failed to process image');
                 }
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    handleCustomError('abortError', 'Image processing was cancelled by the user. <a href="/" class="text-decoration-none">Try Again</a>');
-                } else {
-                    handleCustomError('networkError', error.message);
-                }
+                handleCustomError(error.name === 'AbortError' ? 'abortError' : 'networkError', error.message);
             } finally {
                 setProcessingState(false);
             }
         });
     }
 
-    function setProcessingState(isProcessing) {
-        const submitButton = form.querySelector('button[type="submit"]');
-        const loader = document.getElementById('loader');
-        submitButton.disabled = isProcessing;
-        loader.style.display = isProcessing ? 'block' : 'none';
-
-        if (isProcessing) {
-            abortController = new AbortController();
-            document.getElementById('cancel-button').onclick = () => {
-                abortController.abort();
-                setProcessingState(false);
-            };
-        } else {
-            abortController = null;
-        }
-    }
-
-    function validateForm() {
-        const errors = [];
+    // Validate form inputs including image resolution check
+    async function validateForm() {
         const file = document.getElementById('file').files[0];
-        const operation = document.getElementById('operation').value;
-        if (!file) errors.push("Please select a file.");
-        if (!operation) errors.push("Please select an operation.");
-        if (file && file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-            errors.push(`File size must be under ${MAX_FILE_SIZE_MB}MB.`);
+
+        // Check if file is selected
+        if (!file) {
+            showMessage('error', "Please select a file.");
+            return false;  // Fail fast
         }
-        return errors;
+
+        // Check file size
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            showMessage('error', `File must be under ${MAX_FILE_SIZE_MB}MB.`);
+            return false;  // Fail fast
+        }
+
+        // Check dimensions
+        const dimensions = await getImageDimensions(file);
+        if (dimensions.width > MAX_WIDTH || dimensions.height > MAX_HEIGHT) {
+            showMessage('error', `Image dimensions must not exceed ${MAX_WIDTH}x${MAX_HEIGHT} pixels.`);
+            return false;  // Fail fast
+        }
+
+        // Check if operation is selected
+        if (!document.getElementById('operation').value) {
+            showMessage('error', "Please select an operation.");
+            return false;  // Fail fast
+        }
+
+        // If all checks pass, return true
+        return true;
     }
 
+
+    // Get image dimensions
+    function getImageDimensions(file) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve({ width: img.width, height: img.height });
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    // Compress image using browser library
     async function compressImage(file) {
         try {
             return await imageCompression(file, { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, useWebWorker: true });
         } catch {
-            handleCustomError('compressionError', 'Image compression failed.');
+            handleCustomError('compressionError', 'Image compression failed');
             return null;
         }
     }
 
     function showMessage(type, message) {
-        notifier.innerHTML = type === 'success' ? `<span class='text-success'>${message}</span>` : 
-                             type === 'error' ? `<span class='text-danger'>${message}</span>` : '';
+        let link = '';
+
+        // Add appropriate link based on message type
+        if (type === 'success') {
+            link = ' <a href="/" class="text-decoration-none">Process Another</a>';
+        } else {
+            link = ' <a href="/" class="text-decoration-none">Try Again</a>';
+        }
+
+        // Only show the message if there's a type (error or success)
+        notifier.innerHTML = type ? `<span class='text-${type}'>${message}${link}</span>` : '';
+    }
+
+
+    function handleCustomError(type, message) {
+        showMessage('danger', `${type}: ${message}`);
     }
 
     function downloadBlob(blob, filename) {
@@ -173,36 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function fetchWithTimeout(url, options) {
-        const controller = abortController || new AbortController();
-        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-        options.signal = controller.signal;
-        try {
-            return await fetch(url, options);
-        } finally {
-            clearTimeout(timer);
-        }
-    }
-
-    function handleCustomError(errorType, message) {
-        // Customize messages based on the error type
-        switch (errorType) {
-            case 'formValidationError':
-                showMessage('error', `Form validation failed: ${message}`);
-                break;
-            case 'compressionError':
-                showMessage('error', `Compression Error: ${message}`);
-                break;
-            case 'serverError':
-                showMessage('error', `Server Error: ${message}`);
-                break;
-            case 'abortError':
-                showMessage('error', `Abort Error: ${message}`);
-                break;
-            case 'networkError':
-                showMessage('error', `Network Error: ${message}`);
-                break;
-            default:
-                showMessage('error', `An unknown error occurred: ${message}`);
-        }
+        options.signal = (abortController = new AbortController()).signal;
+        return await fetch(url, options);
     }
 });

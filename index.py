@@ -1,38 +1,33 @@
 import os
 import io
+import traceback
 from flask import Flask, render_template, request, send_file, jsonify, send_from_directory
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from werkzeug.utils import secure_filename
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Random secret key for session security
+# Secret key for session security (used if sessions/cookies needed)
+app.secret_key = os.urandom(24)
 
-
-# Constants for image handling
-# MAX_SIZE_IMAGE = 10 * 1024 * 1024  # 10 MB max upload size
+# Allowed file extensions for uploads
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-MAX_WIDTH, MAX_HEIGHT = 4000, 4000  # Max allowed image dimensions
 ALLOWED_FORMATS = {'PNG', 'JPEG', 'JPG'}
-DEFAULT_FORMAT = 'PNG'  # Default output format if none is provided
-# app.config['MAX_CONTENT_LENGTH'] = MAX_SIZE_IMAGE  # Enforce max upload size
-
-# Helper function to check if a file has an allowed extension
+DEFAULT_FORMAT = 'PNG'  # Default output format if no format is specified
 
 
+# Helper function to validate file extension
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Normalize file format (treat 'JPG' as 'JPEG')
 
-
+# Normalize file format to PIL-compatible format
 def normalize_format(format_str):
     format_str = format_str.upper()
     return 'JPEG' if format_str == 'JPG' else format_str
 
-# Preserve alpha transparency channel when converting images
 
-
+# Preserve alpha transparency if the image supports it
 def preserve_alpha(original, processed):
     if original.mode == 'RGBA':
         r, g, b, a = original.split()
@@ -40,37 +35,40 @@ def preserve_alpha(original, processed):
     return processed
 
 
+# Serve static files (e.g., images, robots.txt, ads.txt)
 @app.route('/images/<filename>')
 def serve_image(filename):
     return send_from_directory('static/images', filename)
 
 
 @app.route('/<filename>')
-def serve_about(filename):
+def serve_static(filename):
     return send_from_directory('static/', filename)
 
 
-@app.route('/robots.txt')  # Serve robots.txt (for SEO crawlers)
+@app.route('/robots.txt')
 def serve_robots():
     return send_from_directory(app.root_path, 'robots.txt')
 
 
-# Serve ads.txt (for Google AdSense or similar services)
 @app.route('/ads.txt')
 def serve_ads():
     return send_from_directory(app.root_path, 'ads.txt')
 
 
-@app.route('/')  # Home page route
+# Home page route
+@app.route('/')
 def index():
     return render_template('index.html')
 
 
-@app.route('/health')  # Health check endpoint for monitoring
+# Health check endpoint (useful for monitoring tools like Kubernetes)
+@app.route('/health')
 def health_check():
     return jsonify(status='healthy', service='Teditor Backend', pillow_version=Image.__version__)
 
 
+# Global error handlers for better debugging
 @app.errorhandler(400)
 def handle_bad_request(e):
     return jsonify({"error": "Bad Request", "details": str(e)}), 400
@@ -78,6 +76,7 @@ def handle_bad_request(e):
 
 @app.errorhandler(500)
 def handle_internal_error(e):
+    app.logger.error(traceback.format_exc())
     return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 
@@ -86,16 +85,13 @@ def handle_value_error(e):
     return jsonify({"error": str(e)}), 400
 
 
-# Core image processing function - applies requested operation
+# Core function to process the image based on operation
 def process_image(image, operation, form):
     if operation == 'cpng':
-        return image, 'PNG'  # Convert to PNG
-
-    elif operation == 'cjpg':
-        return image, 'JPEG'  # Convert to JPG
+        return image, 'PNG'  # Force PNG conversion
 
     elif operation == 'cgray':
-        return image.convert('L'), None  # Grayscale conversion
+        return image.convert('L'), None  # Convert to grayscale
 
     elif operation == 'resize':
         width, height = int(form.get('width', 0)), int(form.get('height', 0))
@@ -108,8 +104,8 @@ def process_image(image, operation, form):
         return image.rotate(angle, expand=True), None
 
     elif operation == 'brightness_contrast':
-        brightness, contrast = float(form.get('brightness', 1.0)), float(
-            form.get('contrast', 1.0))
+        brightness = float(form.get('brightness', 1.0))
+        contrast = float(form.get('contrast', 1.0))
         image = ImageEnhance.Brightness(image).enhance(brightness)
         return ImageEnhance.Contrast(image).enhance(contrast), None
 
@@ -142,65 +138,77 @@ def process_image(image, operation, form):
         return image.filter(ImageFilter.SHARPEN), None
 
     elif operation == 'invert':
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-        return ImageOps.invert(image), None
-
-    # Add new operations here as needed
+        # Ensure correct mode for invert operation
+        if image.mode not in ['RGB', 'RGBA']:
+            image = image.convert('RGBA')
+        if image.mode == 'RGBA':
+            r, g, b, a = image.split()
+            inverted_rgb = ImageOps.invert(Image.merge("RGB", (r, g, b)))
+            return Image.merge("RGBA", (*inverted_rgb.split(), a)), None
+        else:
+            return ImageOps.invert(image), None
+    # Add new operations here
     # elif operation == 'new_operation':
     #    return image, None
-    #    ...
 
     else:
         raise ValueError(f"Unknown operation: {operation}")
 
 
+# Main endpoint to edit images
 @app.route('/edit', methods=['POST'])
 def edit_image():
-    # Get uploaded file
-    uploaded_file = request.files.get('file')
-    if not uploaded_file or uploaded_file.filename == '':
-        raise ValueError("No file uploaded")
+    try:
+        # Get uploaded file from the form
+        uploaded_file = request.files.get('file')
+        if not uploaded_file or uploaded_file.filename == '':
+            raise ValueError("No file uploaded")
 
-    if not allowed_file(uploaded_file.filename):
-        raise ValueError("Invalid file type. Allowed: PNG, JPG, JPEG")
+        # Validate file extension
+        if not allowed_file(uploaded_file.filename):
+            raise ValueError("Invalid file type. Allowed: PNG, JPG, JPEG")
 
-    # Load image using PIL
-    image = Image.open(uploaded_file.stream)
+        # Load image using PIL
+        image = Image.open(uploaded_file.stream)
 
-    # Validate image dimensions
-    if image.width > MAX_WIDTH or image.height > MAX_HEIGHT:
-        raise ValueError(f"Image dimensions exceed {MAX_WIDTH}x{MAX_HEIGHT}")
+        # Get the requested operation (e.g., resize, rotate, etc.)
+        operation = request.form.get('operation')
+        if not operation:
+            raise ValueError("No operation specified")
 
-    # Get requested operation and desired format
-    operation = request.form.get('operation')
-    file_format = normalize_format(
-        request.form.get('file_format', DEFAULT_FORMAT))
-    if file_format not in ALLOWED_FORMATS:
-        raise ValueError(f"Unsupported file format: {file_format}")
+        # Process the image
+        processed_image, forced_format = process_image(
+            image, operation, request.form)
 
-    # Process the image based on operation
-    processed_image, forced_format = process_image(
-        image, operation, request.form)
+        # Set output format (either forced by operation or default PNG)
+        file_format = forced_format if forced_format else DEFAULT_FORMAT
 
-    # If operation forces format change (like PNG/JPEG conversion), respect it
-    if forced_format:
-        file_format = forced_format
+        # JPEG requires RGB mode (no transparency), so convert if necessary
+        if file_format == 'JPEG' and processed_image.mode != 'RGB':
+            processed_image = processed_image.convert('RGB')
 
-    # JPEG requires RGB mode (no transparency)
-    if file_format == 'JPEG' and processed_image.mode != 'RGB':
-        processed_image = processed_image.convert('RGB')
+        # Prepare image for download (send directly as response)
+        img_io = io.BytesIO()
+        processed_image.save(img_io, file_format)
+        img_io.seek(0)
 
-    # Prepare image for download
-    img_io = io.BytesIO()
-    processed_image.save(img_io, file_format)
-    img_io.seek(0)
+        return send_file(
+            img_io,
+            mimetype=f'image/{file_format.lower()}',
+            as_attachment=True,
+            download_name=f'edited_image.{file_format.lower()}'
+        )
 
-    # Return processed file as response
-    return send_file(img_io, mimetype=f'image/{file_format.lower()}', as_attachment=True,
-                     download_name=f'edited_image.{file_format.lower()}')
+    except ValueError as ve:
+        app.logger.warning(f"Value error: {ve}")
+        return handle_value_error(ve)
+
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {e}")
+        app.logger.error(traceback.format_exc())
+        return handle_internal_error(e)
 
 
-# Run app in debug mode for development
+# Run app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)  # Set debug=False in production
