@@ -87,72 +87,105 @@ def handle_value_error(e):
 
 # Core function to process the image based on operation
 def process_image(image, operation, form):
-    if operation == 'cpng':
-        return image, 'PNG'  # Force PNG conversion
+    try:
+        if operation == 'cpng':
+            return image, 'PNG'  # Force PNG conversion
 
-    elif operation == 'cgray':
-        return image.convert('L'), None  # Convert to grayscale
+        elif operation == 'cgray':
+            return image.convert('L'), None  # Convert to grayscale
 
-    elif operation == 'resize':
-        width, height = int(form.get('width', 0)), int(form.get('height', 0))
-        if width <= 0 or height <= 0:
-            raise ValueError("Invalid resize dimensions")
-        return image.resize((width, height)), None
+        elif operation == 'resize':
+            try:
+                width = int(form.get('width', ''))
+                height = int(form.get('height', ''))
+            except ValueError:
+                raise ValueError("Resize dimensions must be valid numbers.")
 
-    elif operation == 'rotate':
-        angle = int(form.get('angle', 0))
-        return image.rotate(angle, expand=True), None
+            if width <= 0 or height <= 0:
+                raise ValueError("Resize dimensions must be positive.")
 
-    elif operation == 'brightness_contrast':
-        brightness = float(form.get('brightness', 1.0))
-        contrast = float(form.get('contrast', 1.0))
-        image = ImageEnhance.Brightness(image).enhance(brightness)
-        return ImageEnhance.Contrast(image).enhance(contrast), None
+            return image.resize((width, height)), None
 
-    elif operation == 'crop':
-        x, y = int(form.get('x', 0)), int(form.get('y', 0))
-        crop_width, crop_height = int(form.get('crop_width', 0)), int(
-            form.get('crop_height', 0))
+        elif operation == 'rotate':
+            try:
+                angle = float(form.get('angle', ''))
+            except ValueError:
+                raise ValueError("Rotation angle must be a valid number.")
 
-        # Validate crop dimensions
-        if x < 0 or y < 0 or crop_width <= 0 or crop_height <= 0:
-            raise ValueError("Invalid crop dimensions")
-        if x + crop_width > image.width or y + crop_height > image.height:
-            raise ValueError("Crop dimensions exceed image size")
+            return image.rotate(angle, expand=True), None
 
-        return image.crop((x, y, x + crop_width, y + crop_height)), None
+        elif operation == 'brightness_contrast':
+            try:
+                brightness = float(form.get('brightness', ''))
+                contrast = float(form.get('contrast', ''))
+            except ValueError:
+                raise ValueError(
+                    "Brightness and contrast must be valid numbers.")
 
-    elif operation == 'flip':
-        flip_type = form.get('flip_type', '').strip().lower()
-        if flip_type == 'vertical':
-            return image.transpose(Image.FLIP_TOP_BOTTOM), None
-        elif flip_type == 'horizontal':
-            return image.transpose(Image.FLIP_LEFT_RIGHT), None
-        raise ValueError(f"Invalid flip type '{flip_type}'")
+            if not (0.0 <= brightness <= 2.0):
+                raise ValueError("Brightness must be between 0.0 and 2.0.")
+            if not (0.0 <= contrast <= 2.0):
+                raise ValueError("Contrast must be between 0.0 and 2.0.")
 
-    elif operation == 'blur':
-        radius = float(form.get('blur_radius', 5))
-        return image.filter(ImageFilter.GaussianBlur(radius)), None
+            image = ImageEnhance.Brightness(image).enhance(brightness)
+            return ImageEnhance.Contrast(image).enhance(contrast), None
 
-    elif operation == 'sharpen':
-        return image.filter(ImageFilter.SHARPEN), None
+        elif operation == 'crop':
+            try:
+                x = int(form.get('x', ''))
+                y = int(form.get('y', ''))
+                crop_width = int(form.get('crop_width', ''))
+                crop_height = int(form.get('crop_height', ''))
+            except ValueError:
+                raise ValueError("Crop values must be valid numbers.")
 
-    elif operation == 'invert':
-        # Ensure correct mode for invert operation
-        if image.mode not in ['RGB', 'RGBA']:
-            image = image.convert('RGBA')
-        if image.mode == 'RGBA':
-            r, g, b, a = image.split()
-            inverted_rgb = ImageOps.invert(Image.merge("RGB", (r, g, b)))
-            return Image.merge("RGBA", (*inverted_rgb.split(), a)), None
+            if x < 0 or y < 0 or crop_width <= 0 or crop_height <= 0:
+                raise ValueError("Invalid crop dimensions.")
+            if x + crop_width > image.width or y + crop_height > image.height:
+                raise ValueError("Crop dimensions exceed image size.")
+
+            return image.crop((x, y, x + crop_width, y + crop_height)), None
+
+        elif operation == 'flip':
+            flip_type = form.get('flip_type', '').strip().lower()
+            if flip_type == 'vertical':
+                return image.transpose(Image.FLIP_TOP_BOTTOM), None
+            elif flip_type == 'horizontal':
+                return image.transpose(Image.FLIP_LEFT_RIGHT), None
+            raise ValueError(f"Invalid flip type '{flip_type}'")
+
+        elif operation == 'blur':
+            try:
+                radius = float(form.get('blur_radius', ''))
+            except ValueError:
+                raise ValueError("Blur radius must be a valid number.")
+
+            if radius < 0:
+                raise ValueError("Blur radius must be positive.")
+
+            return image.filter(ImageFilter.GaussianBlur(radius)), None
+
+        elif operation == 'sharpen':
+            return image.filter(ImageFilter.SHARPEN), None
+
+        elif operation == 'invert':
+            if image.mode not in ['RGB', 'RGBA']:
+                image = image.convert('RGBA')
+            if image.mode == 'RGBA':
+                r, g, b, a = image.split()
+                inverted_rgb = ImageOps.invert(Image.merge("RGB", (r, g, b)))
+                return Image.merge("RGBA", (*inverted_rgb.split(), a)), None
+            else:
+                return ImageOps.invert(image), None
+        # Add new operations here
+        # elif operation == 'new_operation':
+        #    return image.new_operation(), None
+
         else:
-            return ImageOps.invert(image), None
-    # Add new operations here
-    # elif operation == 'new_operation':
-    #    return image, None
+            raise ValueError(f"Unknown operation: {operation}")
 
-    else:
-        raise ValueError(f"Unknown operation: {operation}")
+    except ValueError as e:
+        return {"error": str(e)}
 
 
 # Main endpoint to edit images
@@ -176,27 +209,31 @@ def edit_image():
         if not operation:
             raise ValueError("No operation specified")
 
-        # Process the image
-        processed_image, forced_format = process_image(
-            image, operation, request.form)
+        # Retrieve the unique filename from the request
+        new_filename = request.form.get('new_name', uploaded_file.filename)  # Default to original if missing
+        file_format = new_filename.split('.')[-1]  # Extract format from the frontend filename
 
-        # Set output format (either forced by operation or default PNG)
-        file_format = forced_format if forced_format else DEFAULT_FORMAT
+        # Process the image
+        processed_image, forced_format = process_image(image, operation, request.form)
+
+        # If forced format is applied, adjust the filename
+        if forced_format:
+            new_filename = f"{new_filename.rsplit('.', 1)[0]}.{forced_format.lower()}"
 
         # JPEG requires RGB mode (no transparency), so convert if necessary
-        if file_format == 'JPEG' and processed_image.mode != 'RGB':
+        if file_format.lower() == 'jpeg' and processed_image.mode != 'RGB':
             processed_image = processed_image.convert('RGB')
 
         # Prepare image for download (send directly as response)
         img_io = io.BytesIO()
-        processed_image.save(img_io, file_format)
+        processed_image.save(img_io, file_format.upper())
         img_io.seek(0)
 
         return send_file(
             img_io,
             mimetype=f'image/{file_format.lower()}',
             as_attachment=True,
-            download_name=f'edited_image.{file_format.lower()}'
+            download_name=new_filename  # Ensure it matches frontend
         )
 
     except ValueError as ve:

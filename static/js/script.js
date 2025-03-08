@@ -16,30 +16,30 @@ document.addEventListener('DOMContentLoaded', function () {
         resize: {
             label: "Resize",
             fields: [
-                { name: "width", label: "Width (px)", type: "number", required: true },
-                { name: "height", label: "Height (px)", type: "number", required: true }
+                { name: "width", label: "Width (px)", type: "text", required: true },
+                { name: "height", label: "Height (px)", type: "text", required: true }
             ]
         },
         rotate: {
             label: "Rotate",
             fields: [
-                { name: "angle", label: "Rotation Angle (°)", type: "number", required: true }
+                { name: "angle", label: "Rotation Angle (deg)", type: "text", required: true }
             ]
         },
         crop: {
             label: "Crop",
             fields: [
-                { name: "x", label: "X Coordinate", type: "number", required: true },
-                { name: "y", label: "Y Coordinate", type: "number", required: true },
-                { name: "crop_width", label: "Crop Width (px)", type: "number", required: true },
-                { name: "crop_height", label: "Crop Height (px)", type: "number", required: true }
+                { name: "x", label: "X Coordinate", type: "text", required: true },
+                { name: "y", label: "Y Coordinate", type: "text", required: true },
+                { name: "crop_width", label: "Crop Width (px)", type: "text", required: true },
+                { name: "crop_height", label: "Crop Height (px)", type: "text", required: true }
             ]
         },
         brightness_contrast: {
             label: "Brightness & Contrast",
             fields: [
-                { name: "brightness", label: "Brightness (0.0 to 2.0)", type: "number", step: "0.1", required: true },
-                { name: "contrast", label: "Contrast (0.0 to 2.0)", type: "number", step: "0.1", required: true }
+                { name: "brightness", label: "Brightness (0.0 to 2.0)", type: "text", required: true },
+                { name: "contrast", label: "Contrast (0.0 to 2.0)", type: "text", required: true }
             ]
         },
         flip: {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         blur: {
             label: "Blur",
             fields: [
-                { name: "blur_radius", label: "Blur Radius (px)", type: "number", required: true }
+                { name: "blur_radius", label: "Blur Radius (px)", type: "text", required: true }
             ]
         },
         sharpen: {
@@ -62,13 +62,16 @@ document.addEventListener('DOMContentLoaded', function () {
             label: "Invert Colors",
             fields: []
         }
+        // Add more operations here
+        // Example: { label: "Operation Name", fields: [{ name: "field_name", label: "Field Label", type: "text", required: true }] }
     };
 
-
+    // Get references to form and notifier elements
     const form = document.getElementById('editor-form');
     const notifier = document.getElementById('notifier');
     let abortController = null;  // To handle cancellation
 
+    // Initialize the form
     initializeForm();
 
     function initializeForm() {
@@ -85,7 +88,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button type="button" id="cancel-button" class="btn btn-danger btn-sm">Cancel</button>
             </div>
         `;
+        // Populate the operation dropdown
         populateOperationDropdown();
+        // Attach event listeners
         attachEventListeners();
     }
 
@@ -133,24 +138,26 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             showMessage('', '');
-
+        
             const valid = await validateForm();
             if (!valid) return;  // Stop on first error
-
+        
             const file = document.getElementById('file').files[0];
+            const uniqueFilename = generateUniqueFilename(file.name); // Generate unique filename
             const compressedFile = await compressImage(file);
             if (!compressedFile) return;
-
+        
             const formData = new FormData(form);
-            formData.set('file', compressedFile, compressedFile.name);
-
+            formData.set('file', compressedFile, uniqueFilename); // Set unique filename
+            formData.set('new_name', uniqueFilename); // Send it explicitly
+        
             setProcessingState(true);
-
+        
             try {
                 const response = await fetchWithTimeout('/edit', { method: 'POST', body: formData });
                 if (response.ok) {
                     const blob = await response.blob();
-                    downloadBlob(blob, 'edited_image.png');
+                    downloadBlob(blob, uniqueFilename); // Ensure correct name on download
                     showMessage('success', 'Image processed successfully!');
                 } else {
                     showMessage('error', 'Failed to process image.');
@@ -192,6 +199,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return true;
     }
+
+    function generateUniqueFilename(originalName) {
+        const id = crypto.randomUUID(); // Generate UUID (browser-supported)
+        const extension = originalName.split('.').pop();
+        const baseName = originalName.replace(/\.[^/.]+$/, '');
+        return `${baseName}_${id}.${extension}`;
+    }
+
 
     function setProcessingState(isProcessing) {
         const loader = document.getElementById('loader');
