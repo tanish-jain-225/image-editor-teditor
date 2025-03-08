@@ -36,13 +36,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 { name: "flip_type", label: "Flip Direction", type: "select", options: ["Horizontal", "Vertical"], required: true }
             ]
         },
+        invert: { label: "Invert Colors", fields: [] },
         blur: {
-            label: "Blur", fields: [
+            label: "Blur",
+            fields: [
                 { name: "blur_radius", label: "Blur Radius (px)", type: "text", required: true }
             ]
         },
-        sharpen: { label: "Sharpen", fields: [] },
-        invert: { label: "Invert Colors", fields: [] }
+        sharpen: {
+            label: "Sharpen",
+            fields: [
+                { name: "sharpen_intensity", label: "Sharpen Intensity (px)", type: "text", required: true }
+            ]
+        }
     };
 
     const form = document.getElementById('editor-form');
