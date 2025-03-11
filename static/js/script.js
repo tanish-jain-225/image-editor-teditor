@@ -163,6 +163,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${fileName}_${uniqueID}.${fileExtension}`; // Append unique ID
     }
 
+    async function getImageDimensions(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve({ width: img.width, height: img.height });
+            img.onerror = reject;
+    
+            const objectURL = URL.createObjectURL(file);
+            img.src = objectURL;
+        });
+    }
+    
+    async function getImageSize(file) {
+        const sizeInBytes = file.size; // File size in bytes
+        return sizeInBytes;
+    }
+
     async function processImage(file) {
         let processedFile = file;
         processedFile = await resizeWithPica(processedFile);
