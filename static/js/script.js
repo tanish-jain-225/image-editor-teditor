@@ -91,6 +91,19 @@ document.addEventListener('DOMContentLoaded', function () {
         operationSelect.addEventListener('change', () => renderDynamicFields(operationSelect.value));
     }
 
+    // Event listener for cancel button
+    document.getElementById('cancel-button').addEventListener('click', handleAbort);
+
+    // Handles the abort operation
+    function handleAbort() {
+        const controller = new AbortController();
+        const signal = controller.signal;
+        controller.abort();
+        showMessage('error', 'Image processing aborted.');
+        setProcessingState(false
+        );
+    }
+
     // Dynamically generates input fields based on selected operation
     function renderDynamicFields(operationKey) {
         const container = document.getElementById('dynamic-options');
@@ -258,24 +271,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showMessage(type, message) {
-        const notifier = document.getElementById('notifier'); 
+        const notifier = document.getElementById('notifier');
         if (!notifier) return; // Ensure notifier exists
-    
+
         if (!message) {
             notifier.innerHTML = ''; // Clear the message if empty
             return;
         }
-    
+
         const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
         let actionLink = '';
-    
+
         if (type === 'error') {
             actionLink = ` <a href="/" style="color:blue;">Try Again</a>`;
         } else if (type === 'success') {
             actionLink = ` <a href="/" style="color:blue;">Process Another</a>`;
         }
-    
+
         notifier.innerHTML = `<span style="color:${color};">${message}${actionLink}</span>`;
     }
-    
+
 });
