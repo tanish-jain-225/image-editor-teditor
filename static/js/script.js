@@ -258,11 +258,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showMessage(type, message) {
+        const notifier = document.getElementById('notifier'); 
+        if (!notifier) return; // Ensure notifier exists
+    
+        if (!message) {
+            notifier.innerHTML = ''; // Clear the message if empty
+            return;
+        }
+    
         const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
-        let actionLink = type === "error"
-            ? `<a href="/" style="color:blue;">Try Again</a>`
-            : `<a href="/" style="color:blue;">Process Another</a>`;
-
-        notifier.innerHTML = `<span style="color:${color};">${message} ${actionLink}</span>`;
+        let actionLink = '';
+    
+        if (type === 'error') {
+            actionLink = ` <a href="/" style="color:blue;">Try Again</a>`;
+        } else if (type === 'success') {
+            actionLink = ` <a href="/" style="color:blue;">Process Another</a>`;
+        }
+    
+        notifier.innerHTML = `<span style="color:${color};">${message}${actionLink}</span>`;
     }
+    
 });
