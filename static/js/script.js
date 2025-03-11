@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const COMPRESSED_TARGET_SIZE = 4 * 1024 * 1024; // 4MB in bytes (max allowed size for compression)
     const MAX_WIDTH = 5000;               // Maximum image width allowed
     const MAX_HEIGHT = 5000;              // Maximum image height allowed
+    let abortController = new AbortController(); // Controller to cancel fetch request if needed (for cancel button)
 
     // Defines available image operations and their input fields
     const operationsConfig = {
@@ -137,10 +138,19 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.set('file', processedFile, uniqueFilename);
             formData.set('new_name', uniqueFilename);
 
+            // Reset previous AbortController and create a new one
+            abortController.abort();
+            abortController = new AbortController();
+
             setProcessingState(true);
 
             try {
-                const response = await fetch('/edit', { method: 'POST', body: formData });
+                const response = await fetch('/edit', {
+                    method: 'POST',
+                    body: formData,
+                    signal: abortController.signal // Link request to AbortController
+                });
+
                 if (response.ok) {
                     const blob = await response.blob();
                     downloadBlob(blob, uniqueFilename);
@@ -149,12 +159,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     showMessage('error', 'Failed to process image.');
                 }
             } catch (error) {
-                showMessage('error', 'Network error occurred.');
+                if (error.name === 'AbortError') {
+                    showMessage('error', 'Image processing canceled.');
+                } else {
+                    showMessage('error', 'Network error occurred.');
+                }
             } finally {
                 setProcessingState(false);
             }
         });
+
+        // Attach cancel event listener
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            abortController.abort(); // Cancel the fetch request
+            setProcessingState(false); // Reset UI state
+            showMessage('error', 'Processing canceled by user.');
+        });
     }
+
 
     function setProcessingState(isProcessing) {
         const loader = document.getElementById('loader');
@@ -258,24 +280,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showMessage(type, message) {
-        const notifier = document.getElementById('notifier'); 
+        const notifier = document.getElementById('notifier');
         if (!notifier) return; // Ensure notifier exists
-    
+
         if (!message) {
             notifier.innerHTML = ''; // Clear the message if empty
             return;
         }
-    
+
         const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
         let actionLink = '';
-    
+
         if (type === 'error') {
             actionLink = ` <a href="/" style="color:blue;">Try Again</a>`;
         } else if (type === 'success') {
             actionLink = ` <a href="/" style="color:blue;">Process Another</a>`;
         }
-    
+
         notifier.innerHTML = `<span style="color:${color};">${message}${actionLink}</span>`;
     }
-    
+
 });
