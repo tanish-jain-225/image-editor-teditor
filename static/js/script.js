@@ -156,6 +156,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function generateUniqueFilename(originalName) {
+        const fileExtension = originalName.split('.').pop(); // Get file extension
+        const fileName = originalName.replace(/\.[^/.]+$/, ''); // Remove extension
+        const uniqueID = crypto.randomUUID(); // Generate unique ID
+        return `${fileName}_${uniqueID}.${fileExtension}`; // Append unique ID
+    }
+
     async function processImage(file) {
         let processedFile = file;
         processedFile = await resizeWithPica(processedFile);
