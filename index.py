@@ -89,14 +89,17 @@ def process_image(image, operation, form):  # Image processing function
         elif operation == 'sharpen':
             return image.filter(ImageFilter.SHARPEN)
         elif operation == 'invert':
-            if image.mode not in ['RGB', 'RGBA']:
-                image = image.convert('RGBA')
             if image.mode == 'RGBA':
                 r, g, b, a = image.split()
                 inverted_rgb = ImageOps.invert(Image.merge("RGB", (r, g, b)))
-                return Image.merge("RGBA", (*inverted_rgb.split(), a))
-            else:
+                r_inv, g_inv, b_inv = inverted_rgb.split()
+                # Ensure correct 4-channel merge
+                return Image.merge("RGBA", (r_inv, g_inv, b_inv, a))
+            elif image.mode == 'RGB':
                 return ImageOps.invert(image)
+            else:
+                # Convert grayscale or other modes to RGB before inverting
+                return ImageOps.invert(image.convert("RGB"))
         # Add more operations here
         # elif operation == 'operation_name':
         #     return image.operation
