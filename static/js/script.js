@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div id="loader" style="display:none; margin-top:10px; text-align:center;">
                 <div class="spinner-border text-primary" role="status"></div>
                 <p style="color:black;">Processing image, please wait...</p>
-                <button type="button" id="cancel-button" class="btn btn-danger btn-sm" onClick="window.location.href = '/'">Cancel</button>
+                <button type="button" id="cancel-button" class="btn btn-danger btn-sm">Cancel</button>
             </div>
         `;
         populateOperationDropdown();
@@ -258,24 +258,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showMessage(type, message) {
-        const notifier = document.getElementById('notifier');
+        const notifier = document.getElementById('notifier'); 
         if (!notifier) return; // Ensure notifier exists
-
+    
         if (!message) {
             notifier.innerHTML = ''; // Clear the message if empty
             return;
         }
-
+    
         const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
         let actionLink = '';
-
+    
         if (type === 'error') {
             actionLink = ` <a href="/" style="color:blue;">Try Again</a>`;
         } else if (type === 'success') {
             actionLink = ` <a href="/" style="color:blue;">Process Another</a>`;
         }
-
+    
         notifier.innerHTML = `<span style="color:${color};">${message}${actionLink}</span>`;
     }
-
+    
 });
