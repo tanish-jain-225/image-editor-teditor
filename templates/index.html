@@ -1,46 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Teditor - Free Online Image Editor | Edit, Resize, Crop & More</title>
-    <meta name="title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More">
-    <meta name="description" content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur.">
-    <meta name="keywords" content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter">
-    <meta name="author" content="Teditor Team">
+    <title>
+      Teditor - Free Online Image Editor | Edit, Resize, Crop & More
+    </title>
+    <meta
+      name="title"
+      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
+    />
+    <meta
+      name="description"
+      content="Teditor lets you edit images online for free. Crop, resize, add filters, convert formats (PNG, JPG), and apply effects like brightness, contrast, or blur."
+    />
+    <meta
+      name="keywords"
+      content="online image editor, free image editor, resize images, crop photos, add filters, convert PNG to JPG, photo editor, image converter"
+    />
+    <meta name="author" content="Teditor Team" />
 
     <!-- Open Graph for Facebook & LinkedIn -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.teditor.com/">
-    <meta property="og:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More">
-    <meta property="og:description" content="Edit images online for free with Teditor. Crop, resize, convert to PNG or JPG, apply filters, and more.">
-    <meta property="og:image" content="https://www.teditor.com/assets/social-preview.png">
-    <meta property="og:site_name" content="Teditor">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.teditor.com/" />
+    <meta
+      property="og:title"
+      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
+    />
+    <meta
+      property="og:description"
+      content="Edit images online for free with Teditor. Crop, resize, convert to PNG or JPG, apply filters, and more."
+    />
+    <meta
+      property="og:image"
+      content="https://www.teditor.com/assets/social-preview.png"
+    />
+    <meta property="og:site_name" content="Teditor" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://www.teditor.com/">
-    <meta name="twitter:title" content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More">
-    <meta name="twitter:description" content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily.">
-    <meta name="twitter:image" content="https://www.teditor.com/assets/social-preview.png">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://www.teditor.com/" />
+    <meta
+      name="twitter:title"
+      content="Teditor - Free Online Image Editor | Edit, Resize, Crop & More"
+    />
+    <meta
+      name="twitter:description"
+      content="Teditor offers free online image editing tools. Crop, resize, add filters, and convert image formats easily."
+    />
+    <meta
+      name="twitter:image"
+      content="https://www.teditor.com/assets/social-preview.png"
+    />
 
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icon.png') }}">
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='images/icon.png') }}"
+      type="image/x-icon"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="{{ url_for('static', filename='images/icon.png') }}"
+    />
 
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="canonical" href="https://www.teditor.com/">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="canonical" href="https://www.teditor.com/" />
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" as="style">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="preload"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      as="style"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
-    {
+      {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Teditor",
@@ -51,7 +97,7 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "image": "https://www.teditor.com/assets/social-preview.png",
         "author": { "@type": "Organization", "name": "Teditor Team" }
-    }
+      }
     </script>
 
     <!-- Image Compression Library -->
@@ -61,58 +107,96 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pica/5.1.0/pica.min.js"></script>
 
     <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2442420859858757" crossorigin="anonymous"></script>
-</head>
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2442420859858757"
+      crossorigin="anonymous"
+    ></script>
 
-<body class="bg-light d-flex flex-column min-vh-100">
+    <!-- Google Auto Ads -->
+    <script
+      async
+      custom-element="amp-auto-ads"
+      src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"
+    ></script>
+  </head>
 
+  <body class="bg-light d-flex flex-column min-vh-100">
     <!-- No-JavaScript Warning (optional but good for accessibility) -->
     <noscript>
-        <div class="alert alert-danger text-center">
-            JavaScript is required to use Teditor. Please enable JavaScript in your browser.
-        </div>
+      <div class="alert alert-danger text-center">
+        JavaScript is required to use Teditor. Please enable JavaScript in your
+        browser.
+      </div>
     </noscript>
 
     <!-- Navbar Section -->
     <nav class="navbar navbar-light bg-white shadow-sm py-2">
-        <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-                <img src="{{ url_for('static', filename='images/icon.png') }}" width="32" class="me-2" alt="Teditor Logo - Free Online Image Editor" loading="lazy">
-                Teditor
-            </a>
-        </div>
+      <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+          <img
+            src="{{ url_for('static', filename='images/icon.png') }}"
+            width="32"
+            class="me-2"
+            alt="Teditor Logo - Free Online Image Editor"
+            loading="lazy"
+          />
+          Teditor
+        </a>
+      </div>
     </nav>
 
     <!-- Main Content Section -->
     <div class="container flex-grow-1 py-4">
-        <div class="card shadow">
-            <div class="card-body" id="editor-container">
-                <h1 class="fs-4 text-center mb-4">Teditor - Edit Your Images Online</h1>
-                <p class="text-muted text-center">Edit images online — fast, free & hassle-free!</p>
+      <div class="card shadow">
+        <div class="card-body" id="editor-container">
+          <h1 class="fs-4 text-center mb-4">
+            Teditor - Edit Your Images Online
+          </h1>
+          <p class="text-muted text-center">
+            Edit images online — fast, free & hassle-free!
+          </p>
 
-                <!-- Image Upload Form (dynamic content from script.js) -->
-                <form id="editor-form" action="/edit" method="post" enctype="multipart/form-data"></form>
+          <!-- Image Upload Form (dynamic content from script.js) -->
+          <form
+            id="editor-form"
+            action="/edit"
+            method="post"
+            enctype="multipart/form-data"
+          ></form>
 
-                <!-- Loader (hidden initially, shown during processing) -->
-                <div id="loader" style="display:none; text-align:center; margin:15px 0;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Processing...</span>
-                    </div>
-                    <p class="text-muted">Processing image, please wait...</p>
-                </div>
-
-                <!-- Notifications (errors/success messages dynamically inserted by script.js) -->
-                <div id="notifier"></div>
+          <!-- Loader (hidden initially, shown during processing) -->
+          <div
+            id="loader"
+            style="display: none; text-align: center; margin: 15px 0"
+          >
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Processing...</span>
             </div>
+            <p class="text-muted">Processing image, please wait...</p>
+          </div>
+
+          <!-- Notifications (errors/success messages dynamically inserted by script.js) -->
+          <div id="notifier"></div>
         </div>
+      </div>
     </div>
+
+    <!-- Google Auto Ads -->
+    <amp-auto-ads type="adsense" data-ad-client="ca-pub-2442420859858757">
+    </amp-auto-ads>
 
     <!-- Footer Section -->
     <footer class="text-center py-2 mt-auto bg-light">
-        <p class="text-muted m-2">&copy; 2024 Teditor - Edit Your Images Online</p>
+      <p class="text-muted m-2">
+        &copy; 2024 Teditor - Edit Your Images Online
+      </p>
     </footer>
 
     <!-- Dynamic Form Script -->
-    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
-</body>
+    <script
+      src="{{ url_for('static', filename='js/script.js') }}"
+      defer
+    ></script>
+  </body>
 </html>
