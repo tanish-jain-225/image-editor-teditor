@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fields: [
                 { name: "sharpen_intensity", label: "Sharpen Intensity (px)", type: "text", required: true }
             ]
-        }, 
+        },
         // Add new operations here
         // Example:
         // new_operation: { label: "Operation Label", fields: [{ name: "field_name", label: "Field Label", type: "text", required: true }] }
@@ -156,6 +156,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function setProcessingState(isProcessing) {
+        const loader = document.getElementById('loader');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        if (isProcessing) {
+            loader.style.display = 'block';   // Show loader
+            submitButton.disabled = true;     // Disable submit button
+        } else {
+            loader.style.display = 'none';    // Hide loader
+            submitButton.disabled = false;    // Enable submit button
+        }
+    }
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+
     function generateUniqueFilename(originalName) {
         const fileExtension = originalName.split('.').pop(); // Get file extension
         const fileName = originalName.replace(/\.[^/.]+$/, ''); // Remove extension
@@ -168,12 +193,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const img = new Image();
             img.onload = () => resolve({ width: img.width, height: img.height });
             img.onerror = reject;
-    
+
             const objectURL = URL.createObjectURL(file);
             img.src = objectURL;
         });
     }
-    
+
     async function getImageSize(file) {
         const sizeInBytes = file.size; // File size in bytes
         return sizeInBytes;
