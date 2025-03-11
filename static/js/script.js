@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <div id="loader" style="display:none; margin-top:10px; text-align:center;">
                 <div class="spinner-border text-primary" role="status"></div>
                 <p style="color:black;">Processing image, please wait...</p>
-                <button type="button" id="cancel-button" class="btn btn-danger btn-sm">Cancel</button>
+                <button type="button" id="cancel-button" class="btn btn-danger btn-sm" onClick="window.location.href = '/'">Cancel</button>
             </div>
         `;
         populateOperationDropdown();
@@ -89,19 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
             operationSelect.appendChild(option);
         });
         operationSelect.addEventListener('change', () => renderDynamicFields(operationSelect.value));
-    }
-
-    // Event listener for cancel button
-    document.getElementById('cancel-button').addEventListener('click', handleAbort);
-
-    // Handles the abort operation
-    function handleAbort() {
-        const controller = new AbortController();
-        const signal = controller.signal;
-        controller.abort();
-        showMessage('error', 'Image processing aborted.');
-        setProcessingState(false
-        );
     }
 
     // Dynamically generates input fields based on selected operation
