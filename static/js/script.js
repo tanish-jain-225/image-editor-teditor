@@ -1,26 +1,29 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
     // Configuration settings
-    const COMPRESSED_TARGET_SIZE = 4 * 1024 * 1024; // 4MB in bytes (max allowed size for compression)
-    const MAX_WIDTH = 5000;               // Maximum image width allowed
-    const MAX_HEIGHT = 5000;              // Maximum image height allowed
-    let abortController = new AbortController(); // Controller to cancel fetch request if needed (for cancel button)
+    const COMPRESSED_TARGET_SIZE = 4 * 1024 * 1024; // 4MB max allowed size for compression
+    const MAX_WIDTH = 5000; // Maximum image width
+    const MAX_HEIGHT = 5000; // Maximum image height
+    let abortController = new AbortController(); // Controller for canceling fetch requests
 
-    // Defines available image operations and their input fields
+    // Image operations and their input fields
     const operationsConfig = {
         cgray: { label: "Convert to Grayscale", fields: [] },
         resize: {
-            label: "Resize", fields: [
+            label: "Resize",
+            fields: [
                 { name: "width", label: "Width (px)", type: "text", required: true },
                 { name: "height", label: "Height (px)", type: "text", required: true }
             ]
         },
         rotate: {
-            label: "Rotate", fields: [
+            label: "Rotate",
+            fields: [
                 { name: "angle", label: "Rotation Angle (deg)", type: "text", required: true }
             ]
         },
         crop: {
-            label: "Crop", fields: [
+            label: "Crop",
+            fields: [
                 { name: "x", label: "X Coordinate", type: "text", required: true },
                 { name: "y", label: "Y Coordinate", type: "text", required: true },
                 { name: "crop_width", label: "Crop Width (px)", type: "text", required: true },
@@ -28,13 +31,15 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         },
         brightness_contrast: {
-            label: "Brightness & Contrast", fields: [
+            label: "Brightness & Contrast",
+            fields: [
                 { name: "brightness", label: "Brightness (0.0 to 2.0)", type: "text", required: true },
                 { name: "contrast", label: "Contrast (0.0 to 2.0)", type: "text", required: true }
             ]
         },
         flip: {
-            label: "Flip", fields: [
+            label: "Flip",
+            fields: [
                 { name: "flip_type", label: "Flip Direction", type: "select", options: ["Horizontal", "Vertical"], required: true }
             ]
         },
@@ -50,18 +55,12 @@ document.addEventListener('DOMContentLoaded', function () {
             fields: [
                 { name: "sharpen_intensity", label: "Sharpen Intensity (px)", type: "text", required: true }
             ]
-        },
-        // Add new operations here
-        // Example:
-        // new_operation: { label: "Operation Label", fields: [{ name: "field_name", label: "Field Label", type: "text", required: true }] }
+        }
     };
 
-    const form = document.getElementById('editor-form');
-    const notifier = document.getElementById('notifier');
+    const form = document.getElementById("editor-form");
 
-    // Initializes form UI components
-    initializeForm();
-
+    // Initialize form components
     function initializeForm() {
         form.innerHTML = `
             <input type="file" id="file" name="file" accept="image/*" class="form-control mb-3" required>
@@ -80,34 +79,34 @@ document.addEventListener('DOMContentLoaded', function () {
         attachEventListeners();
     }
 
-    // Populates the dropdown menu with available operations
+    // Populate operation dropdown
     function populateOperationDropdown() {
-        const operationSelect = document.getElementById('operation');
+        const operationSelect = document.getElementById("operation");
         Object.entries(operationsConfig).forEach(([key, config]) => {
-            const option = document.createElement('option');
+            const option = document.createElement("option");
             option.value = key;
             option.textContent = config.label;
             operationSelect.appendChild(option);
         });
-        operationSelect.addEventListener('change', () => renderDynamicFields(operationSelect.value));
+        operationSelect.addEventListener("change", () => renderDynamicFields(operationSelect.value));
     }
 
-    // Dynamically generates input fields based on selected operation
+    // Render input fields dynamically
     function renderDynamicFields(operationKey) {
-        const container = document.getElementById('dynamic-options');
-        container.innerHTML = '';
-        (operationsConfig[operationKey]?.fields || []).forEach(field => {
-            const wrapper = document.createElement('div');
-            wrapper.classList.add('mb-3');
-            const label = document.createElement('label');
+        const container = document.getElementById("dynamic-options");
+        container.innerHTML = "";
+        (operationsConfig[operationKey]?.fields || []).forEach((field) => {
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("mb-3");
+            const label = document.createElement("label");
             label.textContent = field.label;
-            const input = document.createElement(field.type === 'select' ? 'select' : 'input');
+            const input = document.createElement(field.type === "select" ? "select" : "input");
             input.name = field.name;
-            input.classList.add('form-control');
+            input.classList.add("form-control");
 
-            if (field.type === 'select') {
-                field.options.forEach(opt => {
-                    const option = document.createElement('option');
+            if (field.type === "select") {
+                field.options.forEach((opt) => {
+                    const option = document.createElement("option");
                     option.value = opt.toLowerCase();
                     option.textContent = opt;
                     input.appendChild(option);
@@ -122,78 +121,64 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Event Listeners
     function attachEventListeners() {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            showMessage('', '');
+            showMessage("", "");
 
-            const file = document.getElementById('file').files[0];
-            if (!file) return showMessage('error', 'Please select a file.');
+            const file = document.getElementById("file").files[0];
+            if (!file) return showMessage("error", "Please select a file.");
 
             const uniqueFilename = generateUniqueFilename(file.name);
             const processedFile = await processImage(file);
             if (!processedFile) return;
 
             const formData = new FormData(form);
-            formData.set('file', processedFile, uniqueFilename);
-            formData.set('new_name', uniqueFilename);
+            formData.set("file", processedFile, uniqueFilename);
+            formData.set("new_name", uniqueFilename);
 
-            // Reset previous AbortController and create a new one
             abortController.abort();
             abortController = new AbortController();
 
             setProcessingState(true);
 
+            document.getElementById("cancel-button").addEventListener("click", () => {
+                abortController.abort();
+                setProcessingState(false);
+                showMessage("error", "Processing canceled by user.");
+            });
+
             try {
-                const response = await fetch('/edit', {
-                    method: 'POST',
+                const response = await fetch("/edit", {
+                    method: "POST",
                     body: formData,
-                    signal: abortController.signal // Link request to AbortController
+                    signal: abortController.signal
                 });
 
                 if (response.ok) {
                     const blob = await response.blob();
                     downloadBlob(blob, uniqueFilename);
-                    showMessage('success', 'Image processed successfully!');
+                    showMessage("success", "Image processed successfully!");
                 } else {
-                    showMessage('error', 'Failed to process image.');
+                    showMessage("error", "Failed to process image.");
                 }
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    showMessage('error', 'Image processing canceled.');
-                } else {
-                    showMessage('error', 'Network error occurred.');
-                }
+                showMessage("error", error.name === "AbortError" ? "Image processing canceled." : "Network error occurred.");
             } finally {
                 setProcessingState(false);
             }
         });
-
-        // Attach cancel event listener
-        document.getElementById('cancel-button').addEventListener('click', () => {
-            abortController.abort(); // Cancel the fetch request
-            setProcessingState(false); // Reset UI state
-            showMessage('error', 'Processing canceled by user.');
-        });
     }
 
-
     function setProcessingState(isProcessing) {
-        const loader = document.getElementById('loader');
-        const submitButton = form.querySelector('button[type="submit"]');
-
-        if (isProcessing) {
-            loader.style.display = 'block';   // Show loader
-            submitButton.disabled = true;     // Disable submit button
-        } else {
-            loader.style.display = 'none';    // Hide loader
-            submitButton.disabled = false;    // Enable submit button
-        }
+        document.getElementById("loader").style.display = isProcessing ? "block" : "none";
+        form.querySelector('button[type="submit"]').disabled = isProcessing;
     }
 
     function downloadBlob(blob, filename) {
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
@@ -202,102 +187,92 @@ document.addEventListener('DOMContentLoaded', function () {
         URL.revokeObjectURL(url);
     }
 
-
     function generateUniqueFilename(originalName) {
-        const fileExtension = originalName.split('.').pop(); // Get file extension
-        const fileName = originalName.replace(/\.[^/.]+$/, ''); // Remove extension
-        const uniqueID = crypto.randomUUID(); // Generate unique ID
-        return `${fileName}_${uniqueID}.${fileExtension}`; // Append unique ID
-    }
-
-    async function getImageDimensions(file) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve({ width: img.width, height: img.height });
-            img.onerror = reject;
-
-            const objectURL = URL.createObjectURL(file);
-            img.src = objectURL;
-        });
-    }
-
-    async function getImageSize(file) {
-        const sizeInBytes = file.size; // File size in bytes
-        return sizeInBytes;
+        const fileExtension = originalName.split(".").pop();
+        const fileName = originalName.replace(/\.[^/.]+$/, "");
+        const uniqueID = crypto.randomUUID();
+        return `${fileName}_${uniqueID}.${fileExtension}`;
     }
 
     async function processImage(file) {
-        let processedFile = file;
-        processedFile = await resizeWithPica(processedFile);
-        processedFile = await compressImage(processedFile);
-        return processedFile;
+        try {
+            let processedFile = await resizeWithPica(file);
+            processedFile = await compressImage(processedFile);
+            return processedFile;
+        } catch {
+            showMessage("error", "Image processing failed.");
+            return null;
+        }
     }
 
     async function resizeWithPica(file) {
         const dimensions = await getImageDimensions(file);
-
+    
         if (dimensions.width <= MAX_WIDTH && dimensions.height <= MAX_HEIGHT) {
-            return file;
+            return file; // No resizing needed
         }
-
+    
         const img = new Image();
         img.src = URL.createObjectURL(file);
         await img.decode();
-
+    
         let { width, height } = dimensions;
         const scale = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
         width = Math.round(width * scale);
         height = Math.round(height * scale);
-
+    
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-
-        const picaInstance = pica();
+    
+        const picaInstance = new pica();
         const resizedBlob = await picaInstance.toBlob(canvas, file.type, 0.9);
-
+    
         return new File([resizedBlob], file.name, { type: file.type });
     }
-
+    
     async function compressImage(file) {
         try {
             const originalSize = await getImageSize(file);
-            if (originalSize <= COMPRESSED_TARGET_SIZE) return file;
-
+            if (originalSize <= COMPRESSED_TARGET_SIZE) return file; // No compression needed
+    
             const compressedFile = await imageCompression(file, {
-                maxSizeMB: COMPRESSED_TARGET_SIZE / (1024 * 1024),
+                maxSizeMB: COMPRESSED_TARGET_SIZE / (1024 * 1024), // Convert bytes to MB
                 maxWidthOrHeight: MAX_WIDTH,
                 useWebWorker: true
             });
-
+    
             return compressedFile;
         } catch (error) {
-            showMessage('error', 'Image compression failed.');
+            showMessage("error", "Image compression failed.");
             return null;
         }
     }
+    
+    // Utility functions
+    async function getImageDimensions(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve({ width: img.width, height: img.height });
+            img.onerror = reject;
+    
+            const objectURL = URL.createObjectURL(file);
+            img.src = objectURL;
+        });
+    }
+    
+    async function getImageSize(file) {
+        return file.size; // Returns file size in bytes
+    }
+    
 
     function showMessage(type, message) {
-        const notifier = document.getElementById('notifier');
-        if (!notifier) return; // Ensure notifier exists
-
-        if (!message) {
-            notifier.innerHTML = ''; // Clear the message if empty
-            return;
-        }
-
-        const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
-        let actionLink = '';
-
-        if (type === 'error') {
-            actionLink = ` <a href="/" style="color:blue;">Try Again</a>`;
-        } else if (type === 'success') {
-            actionLink = ` <a href="/" style="color:blue;">Process Another</a>`;
-        }
-
-        notifier.innerHTML = `<span style="color:${color};">${message}${actionLink}</span>`;
+        const notifier = document.getElementById("notifier");
+        if (!notifier) return;
+        notifier.innerHTML = message ? `<span style="color:${type === "success" ? "green" : "red"};">${message}</span>` : "";
     }
 
+    initializeForm();
 });
