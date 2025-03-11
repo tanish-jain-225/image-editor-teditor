@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const COMPRESSED_TARGET_SIZE_MB = 4;  // Target size after compression
-    const MAX_WIDTH = 5000;               // Max allowed width
-    const MAX_HEIGHT = 5000;              // Max allowed height
+    // Configuration settings
+    const COMPRESSED_TARGET_SIZE = 4 * 1024 * 1024; // 4MB in bytes (max allowed size for compression)
+    const MAX_WIDTH = 5000;               // Maximum image width allowed
+    const MAX_HEIGHT = 5000;              // Maximum image height allowed
 
+    // Defines available image operations and their input fields
     const operationsConfig = {
         cgray: { label: "Convert to Grayscale", fields: [] },
         resize: {
@@ -47,13 +49,16 @@ document.addEventListener('DOMContentLoaded', function () {
             fields: [
                 { name: "sharpen_intensity", label: "Sharpen Intensity (px)", type: "text", required: true }
             ]
-        }
+        }, 
+        // Add new operations here
+        // Example:
+        // new_operation: { label: "Operation Label", fields: [{ name: "field_name", label: "Field Label", type: "text", required: true }] }
     };
 
     const form = document.getElementById('editor-form');
     const notifier = document.getElementById('notifier');
-    let abortController = null;
 
+    // Initializes form UI components
     initializeForm();
 
     function initializeForm() {
@@ -74,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
         attachEventListeners();
     }
 
+    // Populates the dropdown menu with available operations
     function populateOperationDropdown() {
         const operationSelect = document.getElementById('operation');
         Object.entries(operationsConfig).forEach(([key, config]) => {
@@ -85,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
         operationSelect.addEventListener('change', () => renderDynamicFields(operationSelect.value));
     }
 
+    // Dynamically generates input fields based on selected operation
     function renderDynamicFields(operationKey) {
         const container = document.getElementById('dynamic-options');
         container.innerHTML = '';
@@ -123,11 +130,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!file) return showMessage('error', 'Please select a file.');
 
             const uniqueFilename = generateUniqueFilename(file.name);
-            const compressedFile = await compressImage(file);
-            if (!compressedFile) return;
+            const processedFile = await processImage(file);
+            if (!processedFile) return;
 
             const formData = new FormData(form);
-            formData.set('file', compressedFile, uniqueFilename);
+            formData.set('file', processedFile, uniqueFilename);
             formData.set('new_name', uniqueFilename);
 
             setProcessingState(true);
@@ -149,73 +156,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function showMessage(type, message) {
-        let link = '';
+    async function processImage(file) {
+        let processedFile = file;
+        processedFile = await resizeWithPica(processedFile);
+        processedFile = await compressImage(processedFile);
+        return processedFile;
+    }
 
-        if (type === 'success') {
-            link = ' <a href="/" class="text-decoration-none">Process Another</a>';
-        } else if (type === 'error') {
-            link = ' <a href="/" class="text-decoration-none">Try Again</a>';
+    async function resizeWithPica(file) {
+        const dimensions = await getImageDimensions(file);
+
+        if (dimensions.width <= MAX_WIDTH && dimensions.height <= MAX_HEIGHT) {
+            return file;
         }
 
-        const color = type === 'success' ? 'green' : (type === 'error' ? 'red' : 'black');
-
-        notifier.innerHTML = type ? `<span style="color:${color};">${message}${link}</span>` : '';
-    }
-
-    function setProcessingState(isProcessing) {
-        const loader = document.getElementById('loader');
-        const submitButton = form.querySelector('button[type="submit"]');
-
-        if (isProcessing) {
-            loader.style.display = 'block';
-            submitButton.disabled = true;
-
-            abortController = new AbortController();
-
-            const cancelButton = document.getElementById('cancel-button');
-            cancelButton.onclick = () => {
-                abortController.abort();
-                setProcessingState(false);
-                showMessage('error', 'Image processing aborted by user.');
-            };
-        } else {
-            loader.style.display = 'none';
-            submitButton.disabled = false;
-            abortController = null;
-        }
-    }
-
-
-    function generateUniqueFilename(originalName) {
-        const id = crypto.randomUUID();
-        const extension = originalName.split('.').pop();
-        return `${originalName.replace(/\.[^/.]+$/, '')}_${id}.${extension}`;
-    }
-
-    function downloadBlob(blob, filename) {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-    }
-
-
-    async function getImageDimensions(file) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve({ width: img.width, height: img.height });
-            img.src = URL.createObjectURL(file);
-        });
-    }
-
-    async function resizeWithPica(file, maxWidth, maxHeight) {
         const img = new Image();
         img.src = URL.createObjectURL(file);
         await img.decode();
 
-        let { width, height } = img;
-        const scale = Math.min(maxWidth / width, maxHeight / height);
+        let { width, height } = dimensions;
+        const scale = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
         width = Math.round(width * scale);
         height = Math.round(height * scale);
 
@@ -225,29 +185,36 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        return new Promise(resolve => canvas.toBlob(resolve, file.type));
+        const picaInstance = window.pica();
+        const resizedBlob = await picaInstance.toBlob(canvas, file.type, 0.9);
+
+        return new File([resizedBlob], file.name, { type: file.type });
     }
 
     async function compressImage(file) {
         try {
-            const dimensions = await getImageDimensions(file);
-            console.log("Original Size:", (file.size / 1024 / 1024).toFixed(2), "MB");
-            console.log("Original Dimensions:", dimensions.width, "x", dimensions.height);
+            const originalSize = await getImageSize(file);
+            if (originalSize <= COMPRESSED_TARGET_SIZE) return file;
 
-            if (dimensions.width > MAX_WIDTH || dimensions.height > MAX_HEIGHT) {
-                console.log("Resizing...");
-                file = await resizeWithPica(file, MAX_WIDTH, MAX_HEIGHT);
-            }
+            const compressedFile = await imageCompression(file, {
+                maxSizeMB: COMPRESSED_TARGET_SIZE / (1024 * 1024),
+                maxWidthOrHeight: MAX_WIDTH,
+                useWebWorker: true
+            });
 
-            if (file.size > COMPRESSED_TARGET_SIZE_MB * 1024 * 1024) {
-                console.log("Compressing...");
-                file = await imageCompression(file, { maxSizeMB: COMPRESSED_TARGET_SIZE_MB, useWebWorker: true });
-            }
-
-            return file;
-        } catch {
-            showMessage('error', 'Image processing failed.');
+            return compressedFile;
+        } catch (error) {
+            showMessage('error', 'Image compression failed.');
             return null;
         }
+    }
+
+    function showMessage(type, message) {
+        const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
+        let actionLink = type === "error"
+            ? `<a href="/" style="color:blue;">Try Again</a>`
+            : `<a href="/" style="color:blue;">Process Another</a>`;
+
+        notifier.innerHTML = `<span style="color:${color};">${message} ${actionLink}</span>`;
     }
 });

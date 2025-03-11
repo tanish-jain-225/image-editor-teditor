@@ -1,51 +1,59 @@
 import os
 import io
 import traceback
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file, jsonify, send_from_directory
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# Preserve transparency for PNGs
-def preserve_alpha(original, processed):
+
+def preserve_alpha(original, processed):  # Preserve transparency for PNGs
     if original.mode == 'RGBA':
         r, g, b, a = original.split()
         processed.putalpha(a)
     return processed
 
-# Route for home page
+
+@app.route('/images/icon.png')
+def send_icon():  # Serve 'static/images/icon.png'
+    return send_from_directory('static', 'images/icon.png')
+
+
 @app.route('/')
-def index():
+def index():  # Route for home page
     return render_template('index.html')
 
-# Health check endpoint
+
 @app.route('/health')
-def health_check():
+def health_check():  # Health check endpoint
     return jsonify(status='healthy', service='Teditor Backend', pillow_version=Image.__version__)
 
-# Error handlers
+
 @app.errorhandler(400)
-def handle_bad_request(e):
+def handle_bad_request(e):  # Error handler - Bad Request
     return jsonify({"error": "Bad Request", "details": str(e)}), 400
 
+
 @app.errorhandler(500)
-def handle_internal_error(e):
+def handle_internal_error(e):  # Error handler - Internal Server Error
     app.logger.error(traceback.format_exc())
     return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
+
 @app.errorhandler(ValueError)
-def handle_value_error(e):
+def handle_value_error(e):  # Error handler - Value Error
     return jsonify({"error": str(e)}), 400
 
-# Image processing function
-def process_image(image, operation, form):
+
+def process_image(image, operation, form):  # Image processing function
     try:
         if operation == 'cgray':
             return image.convert('L')
         elif operation == 'resize':
-            width, height = int(form.get('width', '')), int(form.get('height', ''))
+            width, height = int(form.get('width', '')), int(
+                form.get('height', ''))
             if width <= 0 or height <= 0:
                 raise ValueError("Resize dimensions must be positive.")
             return image.resize((width, height))
@@ -53,13 +61,16 @@ def process_image(image, operation, form):
             angle = float(form.get('angle', ''))
             return image.rotate(angle, expand=True)
         elif operation == 'brightness_contrast':
-            brightness, contrast = float(form.get('brightness', '')), float(form.get('contrast', ''))
+            brightness, contrast = float(
+                form.get('brightness', '')), float(form.get('contrast', ''))
             if not (0.0 <= brightness <= 2.0) or not (0.0 <= contrast <= 2.0):
-                raise ValueError("Brightness and contrast must be between 0.0 and 2.0.")
+                raise ValueError(
+                    "Brightness and contrast must be between 0.0 and 2.0.")
             image = ImageEnhance.Brightness(image).enhance(brightness)
             return ImageEnhance.Contrast(image).enhance(contrast)
         elif operation == 'crop':
-            x, y, crop_width, crop_height = map(int, [form.get('x', ''), form.get('y', ''), form.get('crop_width', ''), form.get('crop_height', '')])
+            x, y, crop_width, crop_height = map(int, [form.get('x', ''), form.get(
+                'y', ''), form.get('crop_width', ''), form.get('crop_height', '')])
             if x < 0 or y < 0 or crop_width <= 0 or crop_height <= 0 or x + crop_width > image.width or y + crop_height > image.height:
                 raise ValueError("Invalid crop dimensions.")
             return image.crop((x, y, x + crop_width, y + crop_height))
@@ -86,14 +97,17 @@ def process_image(image, operation, form):
                 return Image.merge("RGBA", (*inverted_rgb.split(), a))
             else:
                 return ImageOps.invert(image)
+        # Add more operations here
+        # elif operation == 'operation_name':
+        #     return image.operation
         else:
             raise ValueError(f"Unknown operation: {operation}")
     except ValueError as e:
         raise ValueError(str(e))
 
-# Endpoint to edit images
+
 @app.route('/edit', methods=['POST'])
-def edit_image():
+def edit_image():  # Endpoint to edit images
     try:
         uploaded_file = request.files.get('file')
         if not uploaded_file or uploaded_file.filename == '':
@@ -126,6 +140,7 @@ def edit_image():
         app.logger.error(f"Unexpected error: {e}")
         app.logger.error(traceback.format_exc())
         return handle_internal_error(e)
+
 
 # Run Flask app
 if __name__ == '__main__':
