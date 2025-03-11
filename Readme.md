@@ -69,9 +69,3 @@ Flask==2.0.1
 
 ## Usage
 Once deployed, you can access your application via the Vercel link provided. Use the link to start the app anywhere and anytime.
-
-## Contributing
-Feel free to fork this repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-This project is licensed under the MIT License.

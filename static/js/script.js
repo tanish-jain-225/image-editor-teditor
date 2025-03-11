@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const MAX_HEIGHT = 5000;              // Max allowed height
 
     const operationsConfig = {
-        cpng: { label: "Convert to PNG", fields: [] },
         cgray: { label: "Convert to Grayscale", fields: [] },
         resize: {
             label: "Resize", fields: [
