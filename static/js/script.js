@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        const picaInstance = window.pica();
+        const picaInstance = pica();
         const resizedBlob = await picaInstance.toBlob(canvas, file.type, 0.9);
 
         return new File([resizedBlob], file.name, { type: file.type });
