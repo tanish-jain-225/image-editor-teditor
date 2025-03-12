@@ -9,7 +9,8 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 
-def preserve_alpha(original, processed):  # Preserve transparency for PNGs
+def preserve_alpha(original, processed):
+    """Preserve transparency for PNGs."""
     if original.mode == 'RGBA':
         r, g, b, a = original.split()
         processed.putalpha(a)
@@ -17,37 +18,44 @@ def preserve_alpha(original, processed):  # Preserve transparency for PNGs
 
 
 @app.route('/images/icon.png')
-def send_icon():  # Serve 'static/images/icon.png'
+def send_icon():
+    """Serve 'static/images/icon.png'."""
     return send_from_directory('static', 'images/icon.png')
 
 
 @app.route('/')
-def index():  # Route for home page
+def index():
+    """Route for home page."""
     return render_template('index.html')
 
 
 @app.route('/health')
-def health_check():  # Health check endpoint
+def health_check():
+    """Health check endpoint."""
     return jsonify(status='healthy', service='Teditor Backend', pillow_version=Image.__version__)
 
 
 @app.errorhandler(400)
-def handle_bad_request(e):  # Error handler - Bad Request
+def handle_bad_request(e):
+    """Error handler - Bad Request."""
     return jsonify({"error": "Bad Request", "details": str(e)}), 400
 
 
 @app.errorhandler(500)
-def handle_internal_error(e):  # Error handler - Internal Server Error
+def handle_internal_error(e):
+    """Error handler - Internal Server Error."""
     app.logger.error(traceback.format_exc())
     return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 
 @app.errorhandler(ValueError)
-def handle_value_error(e):  # Error handler - Value Error
+def handle_value_error(e):
+    """Error handler - Value Error."""
     return jsonify({"error": str(e)}), 400
 
 
-def process_image(image, operation, form):  # Image processing function
+def process_image(image, operation, form):
+    """Image processing function."""
     try:
         if operation == 'cgray':
             return image.convert('L')
@@ -93,16 +101,14 @@ def process_image(image, operation, form):  # Image processing function
                 r, g, b, a = image.split()
                 inverted_rgb = ImageOps.invert(Image.merge("RGB", (r, g, b)))
                 r_inv, g_inv, b_inv = inverted_rgb.split()
-                # Ensure correct 4-channel merge
                 return Image.merge("RGBA", (r_inv, g_inv, b_inv, a))
             elif image.mode == 'RGB':
                 return ImageOps.invert(image)
             else:
-                # Convert grayscale or other modes to RGB before inverting
                 return ImageOps.invert(image.convert("RGB"))
-        # Add more operations here
-        # elif operation == 'operation_name':
-        #     return image.operation
+        # Add new operations here - Backend logic for new operations
+        # elif operation == 'new_operation':
+        #     return image
         else:
             raise ValueError(f"Unknown operation: {operation}")
     except ValueError as e:
@@ -110,7 +116,8 @@ def process_image(image, operation, form):  # Image processing function
 
 
 @app.route('/edit', methods=['POST'])
-def edit_image():  # Endpoint to edit images
+def edit_image():
+    """Endpoint to edit images."""
     try:
         uploaded_file = request.files.get('file')
         if not uploaded_file or uploaded_file.filename == '':

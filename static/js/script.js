@@ -55,6 +55,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 { name: "sharpen_intensity", label: "Sharpen Intensity (px)", type: "text", required: true }
             ]
         }
+        // Add more operations here - Frontend form fields can be added as needed
+        // Example: { label: "Operation Name", fields: [{ name: "field_name", label: "Field Label", type: "text", required: true }] }
     };
 
     const form = document.getElementById("editor-form");
@@ -252,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Utility functions
-    
+
     async function getImageSize(file) {
         return file.size; // Returns file size in bytes
     }
@@ -272,14 +274,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function showMessage(type, message) {
         const notifier = document.getElementById("notifier");
         if (!notifier) return;
-    
+
         let link = '';
         if (type === "success") {
             link = '<a href="#" onclick="location.reload()">Process Another</a>';
         } else if (type === "error") {
             link = '<a href="#" onclick="location.reload()">Try Again</a>';
         }
-    
+
         notifier.innerHTML = message ? `<span style="color:${type === "success" ? "green" : "red"};">${message}</span> ${link}` : "";
     }
 

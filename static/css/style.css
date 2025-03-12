@@ -1,6 +1,17 @@
 /* ========================= */
 /* Global Reset - Removes default margin, padding and sets box-sizing to border-box for all elements */
 /* ========================= */
+:root {
+  --primary-color: #007bff;
+  --primary-color-dark: #0056b3;
+  --text-color: #333;
+  --text-color-light: #666;
+  --bg-color: #f0f0f0;
+  --white-color: #fff;
+  --border-color: #ddd;
+  --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -12,8 +23,8 @@
 /* ========================= */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   line-height: 1.6;
 }
 
@@ -21,16 +32,16 @@ body {
 /* Navbar Styles - Basic top navigation bar with a subtle border */
 /* ========================= */
 .navbar {
-  background-color: #ffffff;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 15px;
+  background-color: var(--white-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.5rem;
 }
 
 .navbar .navbar-brand {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: bold;
   text-decoration: none;
-  color: #007bff;
+  color: var(--primary-color);
   display: flex;
   align-items: center;
 }
@@ -38,53 +49,53 @@ body {
 .navbar img {
   width: 30px;
   height: 30px;
-  margin-right: 8px;
+  margin-right: 0.5rem;
 }
 
 /* ========================= */
 /* Main Card - Central container for the form */
 /* ========================= */
 .card {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 20px;
+  background-color: var(--white-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
   max-width: 700px;
-  margin: 30px auto;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  margin: 1.875rem auto;
+  box-shadow: var(--card-shadow);
 }
 
 /* ========================= */
 /* Headings - Simple centered heading with margin */
 /* ========================= */
 h1 {
-  font-size: 24px;
-  color: #333;
+  font-size: 1.5rem;
+  color: var(--text-color);
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 0.9375rem;
 }
 
 /* ========================= */
 /* Paragraph Text */
 /* ========================= */
 p {
-  font-size: 14px;
-  color: #666;
+  font-size: 0.875rem;
+  color: var(--text-color-light);
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 /* ========================= */
 /* Form - Spacing and layout for labels, inputs and select boxes */
 /* ========================= */
 form {
-  margin-top: 15px;
+  margin-top: 0.9375rem;
 }
 
 label {
   display: block;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 0.3125rem;
   color: #555;
 }
 
@@ -93,28 +104,29 @@ input[type="text"],
 select,
 textarea {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #fefefe;
+  padding: 0.625rem;
+  margin-bottom: 0.9375rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.3125rem;
+  background-color: var(--white-color);
 }
 
 /* ========================= */
 /* Buttons - Simple styled buttons with padding */
 /* ========================= */
 button {
-  background-color: #007bff;
-  color: #fff;
+  background-color: var(--primary-color);
+  color: var(--white-color);
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  padding: 0.625rem 0.9375rem;
+  border-radius: 0.3125rem;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-color-dark);
 }
 
 /* ========================= */
@@ -122,11 +134,11 @@ button:hover {
 /* ========================= */
 .additional-options {
   background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  padding: 0.9375rem;
+  border-radius: 0.3125rem;
   display: none;
-  margin-top: 15px;
+  margin-top: 0.9375rem;
 }
 
 /* Class to show the additional options section */
@@ -141,11 +153,11 @@ button:hover {
   display: none;
   max-width: 100%;
   max-height: 300px;
-  margin-top: 10px;
-  border: 1px solid #ddd;
+  margin-top: 0.625rem;
+  border: 1px solid var(--border-color);
   background-color: #f9f9f9;
-  padding: 5px;
-  border-radius: 5px;
+  padding: 0.3125rem;
+  border-radius: 0.3125rem;
 }
 
 /* Class to show image preview */
@@ -157,12 +169,12 @@ button:hover {
 /* Footer - Simple footer with small text and border */
 /* ========================= */
 footer {
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: center;
-  color: #666;
-  margin-top: 30px;
-  padding-top: 10px;
-  border-top: 1px solid #ddd;
+  color: var(--text-color-light);
+  margin-top: 1.875rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--border-color);
 }
 
 footer p {
@@ -174,11 +186,11 @@ footer p {
 /* ========================= */
 @media (max-width: 768px) {
   .card {
-    padding: 15px;
+    padding: 0.9375rem;
   }
 
   h1 {
-    font-size: 20px;
+    font-size: 1.25rem;
   }
 
   button {
