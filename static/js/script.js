@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Configuration settings
-    const COMPRESSED_TARGET_SIZE = 4 * 1024 * 1024; // 4MB max allowed size for compression
     const MAX_WIDTH = 5000; // Maximum image width
     const MAX_HEIGHT = 5000; // Maximum image height
     let abortController = new AbortController(); // Controller for canceling fetch requests
@@ -207,71 +206,81 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function resizeWithPica(file) {
         const dimensions = await getImageDimensions(file);
-    
+
         if (dimensions.width <= MAX_WIDTH && dimensions.height <= MAX_HEIGHT) {
             return file; // No resizing needed
         }
-    
+
         const img = new Image();
         img.src = URL.createObjectURL(file);
         await img.decode();
-    
+
         let { width, height } = dimensions;
         const scale = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
         width = Math.round(width * scale);
         height = Math.round(height * scale);
-    
+
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-    
+
         const picaInstance = new pica();
         const resizedBlob = await picaInstance.toBlob(canvas, file.type, 0.9);
-    
+
         return new File([resizedBlob], file.name, { type: file.type });
     }
-    
+
     async function compressImage(file) {
+        const COMPRESSED_TARGET_SIZE = 4 * 1024 * 1024; // 4MB max allowed size for compression (in bytes)
         try {
             const originalSize = await getImageSize(file);
             if (originalSize <= COMPRESSED_TARGET_SIZE) return file; // No compression needed
-    
+
             const compressedFile = await imageCompression(file, {
-                maxSizeMB: COMPRESSED_TARGET_SIZE / (1024 * 1024), // Convert bytes to MB
+                maxSizeMB: COMPRESSED_TARGET_SIZE / (1024 * 1024), // Convert bytes to MB for the library
                 maxWidthOrHeight: MAX_WIDTH,
                 useWebWorker: true
             });
-    
+
             return compressedFile;
         } catch (error) {
             showMessage("error", "Image compression failed.");
             return null;
         }
     }
-    
+
     // Utility functions
+    
+    async function getImageSize(file) {
+        return file.size; // Returns file size in bytes
+    }
+
     async function getImageDimensions(file) {
         return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve({ width: img.width, height: img.height });
             img.onerror = reject;
-    
+
             const objectURL = URL.createObjectURL(file);
             img.src = objectURL;
         });
     }
-    
-    async function getImageSize(file) {
-        return file.size; // Returns file size in bytes
-    }
-    
+
 
     function showMessage(type, message) {
         const notifier = document.getElementById("notifier");
         if (!notifier) return;
-        notifier.innerHTML = message ? `<span style="color:${type === "success" ? "green" : "red"};">${message}</span>` : "";
+    
+        let link = '';
+        if (type === "success") {
+            link = '<a href="#" onclick="location.reload()">Process Another</a>';
+        } else if (type === "error") {
+            link = '<a href="#" onclick="location.reload()">Try Again</a>';
+        }
+    
+        notifier.innerHTML = message ? `<span style="color:${type === "success" ? "green" : "red"};">${message}</span> ${link}` : "";
     }
 
     initializeForm();
