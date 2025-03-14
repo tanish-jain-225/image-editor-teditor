@@ -9,18 +9,28 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 
-def preserve_alpha(original, processed):
-    """Preserve transparency for PNGs."""
-    if original.mode == 'RGBA':
-        r, g, b, a = original.split()
-        processed.putalpha(a)
-    return processed
+@app.route('/ads.txt')
+def send_ads():
+    """Serve 'ads.txt'. from source."""
+    return send_from_directory(os.getcwd(), 'ads.txt')
+
+
+@app.route('/robots.txt')
+def send_robots():
+    """Serve 'robots.txt'. from source."""
+    return send_from_directory(os.getcwd(), 'robots.txt')
 
 
 @app.route('/images/icon.png')
 def send_icon():
-    """Serve 'static/images/icon.png'."""
+    """Serve 'static/images/icon.png'. from static folder."""
     return send_from_directory('static', 'images/icon.png')
+
+
+@app.route('/information.txt')
+def send_info():
+    """Serve 'information.txt'. from static folder."""
+    return send_from_directory('static', 'information.txt')
 
 
 @app.route('/')
@@ -52,6 +62,14 @@ def handle_internal_error(e):
 def handle_value_error(e):
     """Error handler - Value Error."""
     return jsonify({"error": str(e)}), 400
+
+
+def preserve_alpha(original, processed):
+    """Preserve transparency for PNGs."""
+    if original.mode == 'RGBA':
+        r, g, b, a = original.split()
+        processed.putalpha(a)
+    return processed
 
 
 def process_image(image, operation, form):
